@@ -1,0 +1,60 @@
+variable ns-tx-bufs   transmit buffers  one for now
+
+
+variable ns-rx-bufs  receive buffers  .. four for now
+
+test arp
+
+>>   ip# 169.254.230.10 ns-tx-bufs @ tuck arp-issue-whohas transmit.
+
+FIX mac address reversed  3e:25:22:f6:50:00  !!
+
+
+No.     Time           Source                Destination           Protocol Length Info
+      2 0.375923308    3e:25:22:f6:50:00     Broadcast             ARP      60     Who has 169.254.230.10? Tell 169.254.1.1
+
+Frame 2: 60 bytes on wire (480 bits), 60 bytes captured (480 bits) on interface 0
+    Interface id: 0 (enp0s25)
+    Encapsulation type: Ethernet (1)
+    Arrival Time: Sep 10, 2016 16:11:35.794064359 AST
+    [Time shift for this packet: 0.000000000 seconds]
+    Epoch Time: 1473538295.794064359 seconds
+    [Time delta from previous captured frame: 0.375923308 seconds]
+    [Time delta from previous displayed frame: 0.375923308 seconds]
+    [Time since reference or first frame: 0.375923308 seconds]
+    Frame Number: 2
+    Frame Length: 60 bytes (480 bits)
+    Capture Length: 60 bytes (480 bits)
+    [Frame is marked: False]
+    [Frame is ignored: False]
+    [Protocols in frame: eth:ethertype:arp]
+    [Coloring Rule Name: ARP]
+    [Coloring Rule String: arp]
+Ethernet II, Src: 3e:25:22:f6:50:00 (3e:25:22:f6:50:00), Dst: Broadcast (ff:ff:ff:ff:ff:ff)
+    Destination: Broadcast (ff:ff:ff:ff:ff:ff)
+        Address: Broadcast (ff:ff:ff:ff:ff:ff)
+        .... ..1. .... .... .... .... = LG bit: Locally administered address (this is NOT the factory default)
+        .... ...1 .... .... .... .... = IG bit: Group address (multicast/broadcast)
+    Source: 3e:25:22:f6:50:00 (3e:25:22:f6:50:00)
+        Address: 3e:25:22:f6:50:00 (3e:25:22:f6:50:00)
+        .... ..1. .... .... .... .... = LG bit: Locally administered address (this is NOT the factory default)
+        .... ...0 .... .... .... .... = IG bit: Individual address (unicast)
+    Type: ARP (0x0806)
+    Padding: ffffffffffffffffffffffffffffffffffff
+Address Resolution Protocol (request)
+    Hardware type: Ethernet (1)
+    Protocol type: IPv4 (0x0800)
+    Hardware size: 6
+    Protocol size: 4
+    Opcode: request (1)
+    Sender MAC address: 3e:25:22:f6:50:00 (3e:25:22:f6:50:00)
+    Sender IP address: 169.254.1.1
+    Target MAC address: Broadcast (ff:ff:ff:ff:ff:ff)
+    Target IP address: 169.254.230.10
+
+0000  ff ff ff ff ff ff 3e 25 22 f6 50 00 08 06 00 01   ......>%".P.....
+0010  08 00 06 04 00 01 3e 25 22 f6 50 00 a9 fe 01 01   ......>%".P.....
+0020  ff ff ff ff ff ff a9 fe e6 0a ff ff ff ff ff ff   ................
+0030  ff ff ff ff ff ff ff ff ff ff ff ff               ............
+
+
