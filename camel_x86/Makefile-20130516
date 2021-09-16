@@ -1,6 +1,6 @@
-PAYLOAD_DIR := /home/bannisp/src/coreboot/payloads/camelforth
-LIBPAYLOAD_DIR := /home/bannisp/src/coreboot/payloads/libpayload/install/libpayload
-SRC_DIR := /home/bannisp/src/camelforth/camel_x86
+PAYLOAD_DIR := /src/coreboot/payloads/camelforth
+LIBPAYLOAD_DIR := /src/coreboot/payloads/libpayload/install/libpayload
+SRC_DIR := /home/src/camelforth/camel_x86
 LPGCC := $(LIBPAYLOAD_DIR)/bin/lpgcc
 LPAS := $(LIBPAYLOAD_DIR)/bin/lpas
 CFLAGS := -Wall -Werror -Os
