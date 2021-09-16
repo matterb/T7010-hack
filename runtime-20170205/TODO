@@ -1,0 +1,5 @@
+variable font size
+font loader
+font: create , does> @ ?do postpone h# c, loop ; 
+4 font: fl4
+fl4 12 34 56 89
