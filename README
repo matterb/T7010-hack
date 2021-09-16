@@ -1,0 +1,11 @@
+20140201 @@ what we have set out TODO
+Forth for the TC7010 thin client. Coreboot used as bios. Camelforth as a payload with hooks for exceptions and paging. kernel is loaded as a raw file from the eeprom.  The disk on chip is used for applications programs.
+
+
+where we are :
+
+Runtime exec loads.
+basic graphics
+basic ext2fs
+working on usb
+

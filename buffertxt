@@ -1,0 +1,53 @@
+===================
+usb-ohci-5 and usb-storage-3
+also system also usbdefs                                                        
+ok                                                       
+usb-open 
+probe-setup
+1 set-config
+init-msd 
+open-scsi
+40 1 1 di-maxpayload!
+40 2 1 di-maxpayload!
+1 set-interface * pipe stalls - send clear feature( endpoint halt)
+1 unstall-pipe
+2 unstall-pipe * pipe remains stalled
+transport-reset
+open-hardware
+0 set-address
+inquiry
+ 
+========================================
+usb-ohci-6 and usb-storage-4
+( fix problem with control and bulk-in pipe )
+also system also usbdefs                                                                                                            
+usb-open 
+init-msd   ( active configuration is set here in init-usbdev
+           ( device=usb-dev-target device,max-lun 
+show-children  ( disply available units
+0 to my-unit 
+open 
+show-children  ( this opens and closes the scsi device !!! )
+here 1000 + 12999 1 read-blocks
+close
+
+=================================
+( usb-ohci-7 and usb-storage-5)
+usb-open ( -- flg )
+init-msd ( -- )
+show-children ( -- )
+0 to my-unit
+open ( -- flg)
+
+
+here 1000 + dup 0 1 read-blocks cr .
+dup 800 dump
+dup 1 1 read-blocks cr .
+800 dump
+: test 
+ here 1000 + 
+ #blocks 0 do dup i 1 read-blocks if
+       dup block-size dump
+    then
+loop
+;
