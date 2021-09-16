@@ -1,0 +1,218 @@
+\ To test the ANS File Access word set and extension words
+
+\ Copyright (C) Gerry Jackson 2006, 2007
+
+\ This program is free software; you can redistribute it and/or
+\ modify it any way.
+
+\ This program is distributed in the hope that it will be useful,
+\ but WITHOUT ANY WARRANTY; without even the implied warranty of
+\ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+\ The tests are not claimed to be comprehensive or correct 
+
+\ ------------------------------------------------------------------------------
+\ Version 0.4  22 March 2009 { and } replaced with T{ and }T
+\         0.3  20 April 2007  ANS Forth words changed to upper case
+\              Removed directory test from the filenames
+\         0.2  30 Oct 2006 updated following GForth tests to remove
+\              system dependency on file size, to allow for file
+\              buffering and to allow for PAD moving around
+\         0.1  Oct 2006 First version released
+
+\ ------------------------------------------------------------------------------
+\ The tests are based on John Hayes test program for the core word set
+\ and requires those files to have been loaded
+
+\ Words tested in this file are:
+\     ( BIN CLOSE-FILE CREATE-FILE DELETE-FILE FILE-POSITION FILE-SIZE
+\     OPEN-FILE R/O R/W READ-FILE READ-LINE REPOSITION-FILE RESIZE-FILE 
+\     S" SOURCE-ID W/O WRITE-FILE WRITE-LINE 
+\     FILE-STATUS FLUSH-FILE RENAME-FILE 
+
+\ Words not tested:
+\     REFILL INCLUDED INCLUDE-FILE (as these will likely have been
+\     tested in the execution of the test files)
+\ ------------------------------------------------------------------------------
+\ Assumptions, dependencies and notes:
+\     - tester.fr has been loaded prior to this file
+\     - These tests create files in the current directory, if all goes
+\       well these will be deleted. If something fails they may not be
+\       deleted. If this is a problem ensure you set a suitable 
+\       directory before running this test. There is no ANS standard
+\       way of doing this. Also be aware of the file names used below
+\       which are:  fatest1.txt, fatest2.txt and fatest3.txt
+\     - TRUE and FALSE are present from the Core extension word set 
+\ ------------------------------------------------------------------------------
+: t{ ;
+: }t ;
+: bin ;
+
+testing file access word set
+
+decimal
+
+\ ------------------------------------------------------------------------------
+
+testing create-file close-file
+
+: fn1 s" fatest1.txt" ;
+variable fid1
+
+t{ fn1 r/w create-file swap fid1 ! -> 0 }t
+t{ fid1 @ close-file -> 0 }t
+
+\ ------------------------------------------------------------------------------
+
+testing open-file w/o write-line
+
+: line1 s" line 1" ;
+
+t{ fn1 w/o open-file swap fid1 ! -> 0 }t
+t{ line1 fid1 @ write-line -> 0 }t
+t{ fid1 @ close-file -> 0 }t
+
+\ ------------------------------------------------------------------------------
+
+testing r/o file-position (simple)  read-line 
+
+200 constant bsize
+create buf bsize allot
+variable #chars
+
+t{ fn1 r/o open-file swap fid1 ! -> 0 }t
+\ t{ fid1 @ file-position -> 0. 0 }t
+t{ fid1 @ file-position -> 0 0 0 }t
+t{ buf 100 fid1 @ read-line rot dup #chars ! -> true 0 line1 swap drop }t
+t{ buf #chars @ line1 compare -> 0 }t
+\ t{ fid1 @ close-file -> 0 }t
+
+\ ------------------------------------------------------------------------------
+
+testing r/w write-file reposition-file read-file file-position s"
+
+: line2 s" line 2 blah blah blah" ;
+: rl1 buf 100 fid1 @ read-line ;
+2variable fp
+
+t{ fn1 r/w open-file swap fid1 ! -> 0 }t
+t{ fid1 @ file-size drop fid1 @ reposition-file -> 0 }t
+t{ fid1 @ file-size -> fid1 @ file-position }t
+t{ line2 fid1 @ write-file -> 0 }t
+\ t{ 10. fid1 @ reposition-file -> 0 }t
+t{ 10 s>d fid1 @ reposition-file -> 0 }t
+\ t{ fid1 @ file-position -> 10. 0 }t
+t{ fid1 @ file-position -> 10 s>d 0 }t
+\ t{ 0. fid1 @ reposition-file -> 0 }t
+t{ 0 s>d fid1 @ reposition-file -> 0 }t
+t{ rl1 -> line1 swap drop true 0 }t
+t{ rl1 rot dup #chars ! -> true 0 line2 swap drop }t
+t{ buf #chars @ line2 compare -> 0 }t
+t{ rl1 -> 0 false 0 }t
+t{ fid1 @ file-position rot rot fp 2! -> 0 }t
+t{ fp 2@ fid1 @ file-size drop d= -> true }t
+t{ s" " fid1 @ write-line -> 0 }t
+t{ s" " fid1 @ write-line -> 0 }t
+t{ fp 2@ fid1 @ reposition-file -> 0 }t
+t{ rl1 -> 0 true 0 }t
+t{ rl1 -> 0 true 0 }t
+t{ rl1 -> 0 false 0 }t
+t{ fid1 @ close-file -> 0 }t
+
+\ ------------------------------------------------------------------------------
+
+testing bin read-file file-size
+
+: cbuf buf bsize 0 fill ;
+: fn2 s" fatest2.txt" ;
+variable fid2
+: setpad pad 50 0 do i over c! char+ loop drop ;
+
+setpad   \ if anything else is defined setpad must be called again
+         \ as pad may move
+
+t{ fn2 r/w create-file swap fid2 ! -> 0 }t
+t{ pad 50 fid2 @ write-file fid2 @ flush-file -> 0 0 }t
+t{ fid2 @ file-size -> 50 s>d 0 }t
+t{ 0 s>d fid2 @ reposition-file -> 0 }t
+t{ cbuf buf 29 fid2 @ read-file -> 29 0 }t
+t{ pad 29 buf 29 compare -> 0 }t
+t{ pad 30 buf 30 compare -> 1 }t
+t{ cbuf buf 29 fid2 @ read-file -> 21 0 }t
+t{ pad 29 + 21 buf 21 compare -> 0 }t
+t{ fid2 @ file-size drop fid2 @ file-position drop d= -> true }t
+t{ buf 10 fid2 @ read-file -> 0 0 }t
+t{ fid2 @ close-file -> 0 }t
+
+\ --------------------------------------------------------------------
+
+testing resize-file
+
+ t{ fn2 r/w bin open-file swap fid2 ! -> 0 }t
+\ t{ 37. fid2 @ resize-file -> 0 }t
+\ t{ 37 s>d fid2 @ resize-file -> 0 }t
+\ t{ fid2 @ file-size -> 37. 0 }t
+\ t{ fid2 @ file-size -> 37 s>d 0 }t
+\ t{ 0. fid2 @ reposition-file -> 0 }t
+\ t{ 0 s>d fid2 @ reposition-file -> 0 }t
+\ t{ cbuf buf 100 fid2 @ read-file -> 37 0 }t
+\ t{ pad 37 buf 37 compare -> 0 }t
+\ t{ pad 38 buf 38 compare -> 1 }t
+\ t{ 500. fid2 @ resize-file -> 0 }t
+\ t{ 500 s>d fid2 @ resize-file -> 0 }t
+\ t{ fid2 @ file-size -> 500. 0 }t
+\ t{ fid2 @ file-size -> 500 s>d 0 }t
+\ t{ 0. fid2 @ reposition-file -> 0 }t
+\ t{ 0 s>d fid2 @ reposition-file -> 0 }t
+\ t{ cbuf buf 100 fid2 @ read-file -> 100 0 }t
+\ t{ pad 37 buf 37 compare -> 0 }t
+\ t{ fid2 @ close-file -> 0 }t
+
+\ ------------------------------------------------------------------------------
+
+testing delete-file
+
+t{ fn2 delete-file -> 0 }t
+t{ fn2 r/w bin open-file swap drop 0= -> false }t
+t{ fn2 delete-file 0= -> false }t
+
+\ ------------------------------------------------------------------------------
+
+testing multi-line ( comments
+
+t{ ( 1 2 3
+4 5 6
+7 8 9 ) 11 22 33 -> 11 22 33 }t
+
+\ ------------------------------------------------------------------------------
+
+testing source-id (can only test it does not return 0 or -1)
+
+t{ source-id dup -1 = swap 0= or -> false }t
+
+\ ------------------------------------------------------------------------------
+(
+testing rename-file file-status flush-file
+
+: fn3 s" fatest3.txt" ;
+: >end fid1 @ file-size drop fid1 @ reposition-file ;
+
+
+t{ fn3 delete-file drop -> }t
+t{ fn1 fn3 rename-file 0= -> true }t
+t{ fn1 file-status swap drop 0= -> false }t
+t{ fn3 file-status swap drop 0= -> true }t  \ return value is undefined
+t{ fn3 r/w open-file swap fid1 ! -> 0 }t
+t{ >end -> 0 }t
+t{ s" final line" fid1 @ write-line -> 0 }t
+t{ fid1 @ flush-file -> 0 }t        \ can only test flush-file doesn't fail
+t{ fid1 @ close-file -> 0 }t
+
+\ tidy the test folder
+t{ fn3 delete-file drop -> }t
+\  PJB  remove when done      )
+t{ fn1 delete-file drop -> }t
+
+\ ------------------------------------------------------------------------------
+
+cr .( end of file-access word tests) cr

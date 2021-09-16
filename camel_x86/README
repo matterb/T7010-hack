@@ -1,0 +1,4 @@
+extract documentation for list of word defined
+
+grep "^\/\/\ [A-Z]\ " *.S|grep -v "\/\/\ H\ "|grep "\-\-"|cut -d" " -f 2-|sort
+

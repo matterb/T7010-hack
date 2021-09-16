@@ -1,0 +1,282 @@
+Key to wordsets (uppercase=main set, lowercase=extension set):				
+C=core; 
+B=block; 
+D=double-number; 
+E=exception; 
+Y=facility; 				
+F=file-access; 
+T=programming tools; 
+O=search-order; 
+S=string;				
+Z=non-standard;				
+				
+C	! ( x a-addr --)  Store cell x to location a-addr
+C	# ( ud1 -- ud2) Convert a digit
+C	#> ( ud -- c-addr u) End conversion returning string
+Z	#init	-- n	Size of initial user variable data	memory
+C	#s	ud1 -- ud2	Convert remaining digits	number
+C	' (	<spaces>name -- xt) Give the cfa of name
+C 	( ccc<paren> --) Stop interpretation of input stream, resume after ) char
+C   * ( n1 n2 -- n3 ) Signed multiply n1 n2 to yield product n3
+C   */ ( n1 n2 n3 -- n4 ) Signed multiply n1 n2 then divide by n3 to yield quotient n3
+C	*/mod ( n1 n2 n3 -- n4 n5 ) Signed multiply n1 n2 then divide by n3,divide by n3 to yield qoutient n5 and remainder n4
+C	+  ( x1 x2 -- x3 )  Add 
+C	+! ( x a-addr -- )  Add x3 to contents of a-addr
+C	+loop S: ( n --) C: compile terminiaion of counted loop
+C	,	x --	Compile cell	compiling
+C	- ( n1/u1 n2/u2 -- n3/u3 ) Subtract n2/u2 from n1/u1
+S	-trailing	c-addr u1 -- c-addr u2	Trim trailing spaces	string
+C	.	n --	Display signed number	number
+C	."	ccc<quote> --	Compile code to display string	i/o
+c	.(	ccc<paren> --	Parse and display input del'd by )	tools
+c	.r	n1 n2 --	Display signed number right-just	number
+T	.s	--	Display data stack contents	tools
+C	/ ( n1 n2 -- n3 ) Signed division n1 divided by n2 to yield quotient n3
+C	/mod	n1 n2 -- n3 n4	Signed division (n3=rem,n4=quot)
+S	/string	c-addr u n -- c-addr' u'	String minus first n chars	string
+C	0<	n -- flag	Test TOS<0	comparison
+c   0<> n -- flag   Test not zero   comparison
+C	0=	n/u -- flag	Test TOS=0	comparison
+c	0>	n -- flag	Test if greater than zero	comparison
+C	1+	(n1/u1 -- n2/u2) Increment by one
+C	1-	(n1/u1 -- n2/u2) Decrement by one 
+C	2!	x1 x2 a-addr --	Store two cells	memory
+C	2*	(x1 -- x2)  left shift one bit position
+C	2/	(x1 -- x2)  right shift one bit position
+c	2>r	x1 x2 --  R: -- x1 x2	Double-push to return stack	stack
+C	2@	a-addr -- x1 x2	Fetch two cells	memory
+C	2drop	x1 x2 --	Drop two cells	stack
+C	2dup	x1 x2 -- x1 x2 x1 x2	Duplicate top two cells	stack
+C	2over	x1x2x3x4 -- x1x2x3x4x1x2	Double-cell OVER	stack
+c	2r>	-- x1 x2  R: x1 x2 --	Double-pop from return stack	stack
+c	2r@	-- x1 x2  R: x1 x2 -- x1 x2	Double fetch from return stack	stack
+C	2swap	x1 x2 x3 x4 -- x3 x4 x1 x2	Swap top two pairs	stack
+C	:	<spaces>name --	Begin colon definition	defining
+c	:noname	-- xt	Start unnamed colon definition	defining
+C	;	--	End colon definition	defining
+C	<	n1 n2 -- flag	Test n1<n2 (signed)	comparison
+c	<>	x1 x2 -- flag	Test inequality	comparison
+C	<#	--	Begin number conversion	number
+C	=	x1 x2 -- flag	Test equality	comparison
+C	>	n1 n2 -- flag	Test n1>n2 (signed)	comparison
+C	>body	xt -- a-addr	Address of parameter field	compiling
+C	>in	-- a-addr	Input pointer	interpreter
+C	>number	ud addr u -- ud' addr' u'	Convert string to number	number
+C	>r	x --    R: -- x	Push to return stack	stack
+T	?	a-addr --	Display cell contents	tools
+c	?do	n1/u1 n2/u2 --	Execute loop if n1/u1 <> n2/u2	structures
+C	?dup	x -- 0 | x x	DUP if non-zero top of stack	stack
+Z	?if	Runtime: x -- x	Compile non-destructive conditional branch	structures
+C	@	a-addr -- xow run
+ 	[	--	Enter interpretative state	compiling
+ 	[']	<spaces>name --	Find word and compile exec. token	compiling
+ 	[char]	<spaces>char --	Compile character literal	compiling
+c 	\	--	Skip one-line comment	interpreter
+ 	]	--	Enter compilation state	compiling
+C 	abort	i*x --  R: j*x --	Generate exception -1
+C 	abort"	i*x x -- |i*x  R:j*x-- |j*x	Exception -2 if TOS non-zero 
+Z	abort"s	-- a-addr	String for ABORT"	exception
+C	abs	(n -- +n)   Absolute value 
+C	accept	c-addr +n1|-n1 -- +n2	Get line from terminal	i/o
+c   action-of   "<spaces>name" -- xt  execution action of deffered definition
+c	again	Runtime: --	Compile unconditional branch	structures
+C	align	--	Align dataspace pointer	memory
+C	aligned	addr -- a-addr	Align address	memory
+C	allot	n --	Allocate dataspace address units	memory
+o	also	--	Duplicate first search wordlist	wordlists
+C	and	(x1 x2 -- x3) Logical AND 
+C	base ( -- a-addr) Return address of Conversion radix
+C	begin	Runtime: --	Compile target for branch	structures
+F	bin	fam -- fam'	Convert access method to binary	file
+C	bl	-- char	ASCII space character	i/o
+S	blank	c-addr u --	Fill memory with blanks	string
+B	blk	-- a-addr	Input block	block
+Z	blks ( n -- ) \ setup for n block buffers
+B	block	u -- c-addr	Read block and get buffer address	block
+c   buffer: u "<space>name --  defining word to create buffer of size u
+B	buffer	u -- c-addr	Get address of buffer for block	block
+t	bye	--	Exit to operating system	misc
+C	c!	char c-addr --	Store character	memory
+c   c"  "ccc<quote>" -- compile counted string
+C	c,	char --	Compile character	compiling
+C	c@	c-addr -- char	Fetch character	memory
+c	case	Runtime: x1 -- x1	Compile conditional select start	structures
+E	catch	i*x xt -- j*x 0 | i*x n	Execute word, catching exceptions
+C	cell+	a-addr1 -- a-addr2	Add cell size to address	memory
+C	cells	n1 -- n2	Size of n1 cells	memory
+C	char	<spaces>char -- char	Parse ASCII char	string
+C	char+	c-addr1 -- c-addr2	Add char size to address	memory
+C	chars	n1 -- n2	Size of n1 chars	memory
+F	close-file	id -- ior	Close file	file
+S	cmove	c-addr1 c-addr2 u --	Move string from bottom	string
+S	cmove>	c-addr1 c-addr2 u --	Move string from top	string
+t	code	<spaces>name --	Start code definition	defining
+Z	cold	--	Cold start Forth system	misc
+S	compare	caddr1 u1 caddr2 u2 -- n	Compare strings	string
+c	compile,	xt --	Compile execution token	compiling
+C	constant	x "<spaces>name" --	Define a constant	defining
+C	count	c-addr1 -- c-addr2 u	Counted to string	string
+C	cr	--	Output newline	i/o
+C	create	<spaces>name --	Create new definition	defining
+F	create-file	c-addr u fam -- id ior	Create new file	file
+D	d- ( d1 d2 -- d3) Double number subtraction	
+D	d+ ( d1 d2 -- d3) Double number addition
+D	dabs ( d -- +d) Double number absolute
+C	do	Runtime: n1 n2 --	Compile loop start	structures
+C	decimal	--	Set base to decimal	number
+c	defer	"<space>name" --	Define deferred word	defining
+c   defer!  xt1 xt2 --  set runtime action of deferred word
+c   defer@  xt1 -- xt2  get runtime action of defrred word
+O	definitions	--	Set compilation to first search	wordlists
+F	delete-file	c-addr u -- ior	Delete file	file
+C	depth	-- +n	Number of items on stack	stack
+D	dnegate	d1 -- d2	Double number negate	arithmetic
+C	does>	--	Change action of latest definition	defining
+C	drop	x --	Discard top of stack	stack
+d	du<	ud1 ud2 -- flag	Test ud1<ud2 (unsigned)	comparison
+t*	dump	c-addr u --	Dump data in hex	tools
+C	dup	x -- x x	Duplicate top of stack	stack
+C	else	Runtime: --	Resolve cond/compile uncond branch	structures
+C	emit	deferred: char --	Emit character to terminal	i/o
+b	empty-buffers	--	Unassign block buffers	block
+c	endcase	Runtime: x1 --	Resolve conditional select struct	structures
+c	endof	Runtime: --	Resolve select	structures
+C	environment?	c-addr u -- false|i*x true	System query
+c	erase	c-addr u --	Fill memory with nulls	memory
+CB	evaluate	i*x caddr u -- j*x	Interpret string	interpreter
+C	execute	i*x xt -- j*x	Execute Forth word	compiling
+C	exit	--	Exit a colon definition	structures
+Z	extend-file	ud id -- ior	Extend file to new size	file
+c	false	-- flag	False	comparison
+C	fill	c-addr u char --	Fill memory with char	string
+F	file-position	id -- ud ior	Get current filepointer	file
+F	file-size	id -- ud ior	Get size of file	file
+f	file-status	c-addr u -- addr ior	Get status: addr of cre/upd times	file
+CO	find	c-addr--c-addr 0|xt 1|xt -1	Find word in dictionary	string
+B	flush	--	Save and unassign block buffers	block
+f	flush-file	id -- ior	Flush file from buffer	file
+C	fm/mod	d1 n1 -- n2 n3	Floored signed division (n3=quot)	arithmetic
+o	forth	--	Set first search to FORTH-WORDLIST	wordlists
+O	forth-wordlist	-- wid	Wordlist containing FORTH words	wordlists
+O	get-current	-- wid	Get compilation wordlist	wordlists
+O	get-order	-- widn...wid1 n	Get search order	wordlists
+C	here	-- addr	Get dataspace pointer	memory
+c	hex	--	Set base to hexadecimal	number
+C	hold	char --	Insert char in numeric output	number
+C	i	-- n  R: s1 s2 -- s1 s2	Get inner loop index	structures
+C	if	Runtime: x --	Compile conditional branch	structures
+C	immediate	--	Make last definition immediate	defining
+f	include	<spaces>name --		file
+F	include-file	i*x id -- j*x	Interpret from file	file
+F	included	i*x c-addr u -- j*x	Interpret from file	file
+C	invert	x1 -- x2	Bitwise inversion	arithmetic
+Z	is	xt "name" --	Set deferred word action	defining
+C	j	-- n  R: 4*s -- 4*s	Get 2nd loop index	structures
+C	key	deferred: -- char	Get character from terminal	i/o
+Y	key?	-- flag	Test if keyboard char available	i/o
+Z	latest	-- a-addr	Last word link	compiling
+C	leave	--	Compile loop exit	structures
+C	literal	x --	Compile literal to definition	compiling
+C	loop	Runtime: --	Compile loop end	structures
+B	load	i*x u -- j*x	Interpret from block	block
+C	lshift	x1 u -- x2	Logical left shift of u places	arithmetic
+C	m*	n1 n2 -- d	Mixed multiply	arithmetic
+D	m+	d1/ud1 n -- d2/ud2	Add to double number	arithmetic
+Z	map	c-addr u n --	Map block range to file	block
+C	max	n1 n2 -- n3	Maximum value	arithmetic
+C	min	n1 n2 -- n3	Minimum value	arithmetic
+C	mod	n1 n2 -- n3	Signed remainder	arithmetic
+C	move	addr1 addr2 u --	Smart copy addr1 to addr2	memory
+y	ms	u --	Wait at least u milliseconds	misc
+C	negate	n1 -- n2	Mathematical inversion	arithmetic
+Z	next	--	End code definition (jump to NEXT)	defining
+c	nip	x1 x2 -- x2	Discard 2nd stack item	stack
+c	of	Runtime: x1 x2 -- | x1	Compile select	structures
+o	only	--	Set minimum search order	wordlists
+F	open-file	c-addr u fam -- id ior	Open existing file	file
+C	or	x1 x2 -- x3	Logical OR	arithmetic
+o	order	--	Display search order	wordlists
+C	over	x1 x2 -- x1 x2 x1	Copy 2nd stack item to top	stack
+c	pad	-- a-addr	Scratch pad	string
+c	parse	"ccc<char>" -- c-addr u	Parse input delimited by char	string
+c   parse-name  "<spaces>name<spaces>" -- c-addr u)
+Z	pause	--	Switch tasks	multi
+Z	pc!	char c-addr --	Output to port	memory
+Z	pc@	c-addr -- char	Input from port	memory
+C	postpone	<spaces>name --	Postpone action of next word	compiling
+o	previous	--	Drop first wordlist in search order	wordlists
+C	quit	--  R: i*x --	Interpret from keyboard	interpreter
+F	r/o	-- fam	Read-only access method	file
+F	r/w	-- fam	Read-write access method	file
+C	r>	-- x  R: x--	Pop from return stack	stack
+C	r@	-- x  R: x -- x	Fetch from return stack	stack
+F	read-file	c-addr u1 id -- u2 ior	Read file (u2=chars read)
+F	read-line	c-addr u1 id -- u2 flag ior	Read line (u2=chars read)	file
+C	recurse	--	Recurse current definition	defining
+cbf	refill	-- flag	Refill source from input	interpreter
+f	rename-file	c-addr1 u1 c-addr2 u2 --ior	Rename file	file
+C	repeat	Runtime: --	Compile uncond,resolve cond branch	structures
+F	reposition-file	ud id -- ior	Change filepointer	file
+F	resize-file	ud id -- ior	Change size of file	file
+c	restore-input	x1..xn n -- flag	Restore current input	interpreter
+C	rot	x1 x2 x3 -- x2 x3 x1	Rotate top three items	stack
+C	rshift	x1 u -- x2	Logical right shift of u places	arithmetic
+C	swap	x1 x2 -- x2 x1	Swap top two items	stack
+CF	s"	ccc<quote> -- c-addr u	Compile/parse string	string
+Z	s=	c-addr1 c-addr2 u -- n	String compare, n=string1-string2	string
+Z	s>0	c-addr n -- c-addr'	Convert to nul-terminated string	string
+C	s>d	n -- d	Single to double number	arithmetic
+B	save-buffers	--	Save updated block buffers	block
+c	save-input	-- x1..xn n	Save current input	interpreter
+Z	scan	c-addr u char -- c-addr' u'	Find matching char	string
+b*	scr	-- a-addr	Number of last listed screen	block
+S	search	ca1 u1 ca2 u2 -- ca3 u3 f	Search string for substring	string
+O	search-wordlist	caddr u wid -- 0|xt 1|xt -1	Search in specified wordlist	wordlists
+O	set-current	wid --	Set compilation wordlist	wordlists
+O	set-order	widn...wid1 n	Set search order	wordlists
+C	sign	n --	Insert minus sign if n negative	number
+S	sliteral	c-addr u --	Compile literal string	string
+C	sm/rem	d1 n1 -- n2 n3	Symmetric signed division (n3=quot)	arithmetic
+C	source	-- c-addr n	Get source specification	interpreter
+cF	source-id	-- u	Input source identifier	interpreter
+C	space	--	Output space	i/o
+C	spaces	n --	Output spaces	i/o
+Z	split	x -- n1 n2	Split word into bytes (n2 high)	arithmetic
+C	state	-- a-addr	Compiler state	compiling
+C	then	Runtime: --	Resolve branch	structures
+E	throw	k*x n -- k*x | i*x n	If TOS non-zero, generate exception	
+b	thru	i*x u1 u2 -- j*x	Interpret from multiple blocks	block
+c	tib	-- a-addr	Address of TIB	interpreter
+C	to	x "<spaces>name" --	Change named value	defining
+c	true	-- flag	True	comparison
+c	tuck	x1 x2 -- x2 x1 x2	Copy top item below 2nd	stack
+C	type	deferred: c-addr u --	Type string to terminal	i/o
+C	u.	u --	Display unsigned number	number
+c	u.r	u n --	Display unsigned number right-just	number
+Z	u0	-- a-addr	User variables base	memory
+C	u<	u1 u2 -- flag	Test u1<u2 (unsigned)	comparison
+c	u>	u1 u2 -- flag	Test u1>u2 (unsigned)	comparison
+Z	ud*	ud1 u2 -- ud3	Mixed multiply	arithmetic
+Z	ud/mod	ud1 u2 -- u3 ud4	Mixed divide	arithmetic
+Z	uinit	-- a-addr	Initial uservariable values	memory
+C	um*	u1 u2 -- ud	Unsigned single>double multiply	arithmetic
+C	um/mod	ud u1 -- u2 u3	Unsigned d>s divide (u2=rem,u3=quo)	arithmetic
+Z	umax	u1 u2 -- u3	Unsigned maximum	arithmetic
+Z	umin	u1 u2 -- u3	Unsigned minimum	arithmetic
+C	unloop	R: s1 s2 --	Drop loop parameters	structures
+Z	unmap	n --	Unmap block range	block
+C	until	Runtime: x --	Compile cond branch resolution	structures
+B	update	--	Mark block buffer as updated	block
+C	value	x "<spaces>name" --	Create named value	defining
+C	variable	<spaces>name --	Define a variable	defining
+Z	vocabulary	<spaces>name --	Create new vocabulary	wordlists
+C	while	Runtime: x --	Compile cond branch	structures
+c	within	x1 x2 x3 -- flag	if x1 < x3 < x2  
+F	w/o	-- fam	Write-only access method	file
+C	word	char "ccc<char>" -- c-addr	Parse word delimited by char	string
+O	wordlist	-- wid	Create new empty wordlist	wordlists
+T	words	--	Display words in search-order	tools
+F	write-file	c-addr u1 id -- ior	Write file	file
+F	write-line ( c-addr u id -- ior) Write u bytes + eol to file id 
+C	xor (x1 x2 -- x3 ) 	Logical exclusive or 
+

@@ -1,0 +1,1345 @@
+.( Copyright 1993 JOHNS HOPKINS UNIVERSITY / APPLIED PHYSICS LABORATORY ) cr
+.( MAY BE DISTRIBUTED FREELY AS LONG AS THIS COPYRIGHT NOTICE REMAINS. ) cr
+.( VERSION 1.0 ) cr
+hex
+
+.( ********** required words not in the camelforth kernel ********** ) cr
+
+.( ***************************************************************** ) cr
+
+\ set the following flag to true for more verbose output; this may
+\ allow you to tell which test caused your system to hang.
+variable verbose
+true  verbose !
+
+: empty-stack \  ( ... -- ) empty stack.
+depth ?dup if 0 do drop loop then ;
+
+: error \  ( c-addr u -- ) display an error message followed by
+\ the line that had the error.
+7 emit  \ sound the bell
+type source type cr \ display line corresponding to error
+empty-stack \ throw away every thing else
+;
+
+variable actual-depth \ stack record
+create actual-results 20 cells allot
+
+: { \  ( -- ) syntactic sugar.
+;
+
+: -> \  ( ... -- ) record depth and content of stack.
+depth dup actual-depth ! \ record depth
+?dup if \ if there is something on stack
+0 do actual-results i cells + ! loop  \ save them
+then ;
+
+: }  ( ... -- ) 
+\ compare stack  (expected) contents with saved
+\ (actual) contents.
+depth actual-depth @ = if \ if depths match
+depth ?dup if \ if there is something on the stack
+ 0 do \ for each stack item
+actual-results i cells + @ \ compare actual with expected
+<> if s" incorrect result: " error leave then
+loop
+then
+else \ depth mismatch
+s" wrong number of results: " error
+then  ;
+
+
+: testing \  ( -- ) talking comment.
+source verbose @
+if dup >r type cr r> >in !
+else >in ! drop
+then ;
+
+
+
+\  =end=
+
+
+\  (c) 1993 johns hopkins university / applied physics laboratory
+\ may be distributed freely as long as this copyright notice remains.
+\ version 1.1
+\ this program tests the core words of an ans forth system.
+\ the program assumes a two's complement implementation where
+\ the range of signed numbers is -2^ (n-1) ... 2^ (n-1)-1 and
+\ the range of unsigned numbers is 0 ... 2^ (n)-1.
+\ i haven't figured out how to test key, quit, abort, or abort"...
+\ i also haven't thought of a way to test environment?...
+
+testing core words
+hex
+
+\ ------------------------------------------------------------------------
+testing basic assumptions
+
+{ -> } \ start with clean slate
+( test if any bits are set; answer in base 1 )
+{ : bitsset? if 0 0 else 0 then ; -> }
+{  0 bitsset? -> 0 } ( zero is all bits clear )
+{  1 bitsset? -> 0 0 } ( other number have at least one bit )
+{ -1 bitsset? -> 0 0 }
+
+\ ------------------------------------------------------------------------
+testing booleans: invert and or xor
+
+{ 0 0 and -> 0 }
+{ 0 1 and -> 0 }
+{ 1 0 and -> 0 }
+{ 1 1 and -> 1 }
+
+{ 0 invert 1 and -> 1 }
+{ 1 invert 1 and -> 0 }
+
+0 constant 0s
+0 invert constant 1s
+
+{ 0s invert -> 1s }
+{ 1s invert -> 0s }
+
+{ 0s 0s and -> 0s }
+{ 0s 1s and -> 0s }
+{ 1s 0s and -> 0s }
+{ 1s 1s and -> 1s }
+
+{ 0s 0s or -> 0s }
+{ 0s 1s or -> 1s }
+{ 1s 0s or -> 1s }
+{ 1s 1s or -> 1s }
+
+{ 0s 0s xor -> 0s }
+{ 0s 1s xor -> 1s }
+{ 1s 0s xor -> 1s }
+{ 1s 1s xor -> 0s }
+
+\ ------------------------------------------------------------------------
+testing 2* 2/ lshift rshift
+
+( we trust 1s, invert, and bitsset?; we will confirm rshift later )
+1s 1 rshift invert constant msb
+{ msb bitsset? -> 0 0 }
+
+{ 0s 2* -> 0s }
+{ 1 2* -> 2 }
+{ 4000 2* -> 8000 }
+{ 1s 2* 1 xor -> 1s }
+{ msb 2* -> 0s }
+
+{ 0s 2/ -> 0s }
+{ 1 2/ -> 0 }
+{ 4000 2/ -> 2000 }
+{ 1s 2/ -> 1s } \ msb propogated
+{ 1s 1 xor 2/ -> 1s }
+{ msb 2/ msb and -> msb }
+
+{ 1 0 lshift -> 1 }
+{ 1 1 lshift -> 2 }
+{ 1 2 lshift -> 4 }
+{ 1 f lshift -> 8000 } \ biggest guaranteed shift
+{ 1s 1 lshift 1 xor -> 1s }
+{ msb 1 lshift -> 0 }
+
+{ 1 0 rshift -> 1 }
+{ 1 1 rshift -> 0 }
+{ 2 1 rshift -> 1 }
+{ 4 2 rshift -> 1 }
+{ 8000 f rshift -> 1 } \ biggest
+{ msb 1 rshift msb and -> 0 } \ rshift zero fills msbs
+{ msb 1 rshift 2* -> msb }
+
+\ ------------------------------------------------------------------------
+testing comparisons: 0= = 0< < > u< min max
+0 invert constant max-uint
+0 invert 1 rshift constant max-int
+0 invert 1 rshift invert constant min-int
+0 invert 1 rshift constant mid-uint
+0 invert 1 rshift invert constant mid-uint+1
+
+0s constant <false>
+1s constant <true>
+
+{ 0 0= -> <true> }
+{ 1 0= -> <false> }
+{ 2 0= -> <false> }
+{ -1 0= -> <false> }
+{ max-uint 0= -> <false> }
+{ min-int 0= -> <false> }
+{ max-int 0= -> <false> }
+
+{ 0 0 = -> <true> }
+{ 1 1 = -> <true> }
+{ -1 -1 = -> <true> }
+{ 1 0 = -> <false> }
+{ -1 0 = -> <false> }
+{ 0 1 = -> <false> }
+{ 0 -1 = -> <false> }
+
+{ 0 0< -> <false> }
+{ -1 0< -> <true> }
+{ min-int 0< -> <true> }
+{ 1 0< -> <false> }
+{ max-int 0< -> <false> }
+
+{ 0 1 < -> <true> }
+{ 1 2 < -> <true> }
+{ -1 0 < -> <true> }
+{ -1 1 < -> <true> }
+{ min-int 0 < -> <true> }
+{ min-int max-int < -> <true> }
+{ 0 max-int < -> <true> }
+{ 0 0 < -> <false> }
+{ 1 1 < -> <false> }
+{ 1 0 < -> <false> }
+{ 2 1 < -> <false> }
+{ 0 -1 < -> <false> }
+{ 1 -1 < -> <false> }
+{ 0 min-int < -> <false> }
+{ max-int min-int < -> <false> }
+{ max-int 0 < -> <false> }
+
+{ 0 1 > -> <false> }
+{ 1 2 > -> <false> }
+{ -1 0 > -> <false> }
+{ -1 1 > -> <false> }
+{ min-int 0 > -> <false> }
+{ min-int max-int > -> <false> }
+{ 0 max-int > -> <false> }
+{ 0 0 > -> <false> }
+{ 1 1 > -> <false> }
+{ 1 0 > -> <true> }
+{ 2 1 > -> <true> }
+{ 0 -1 > -> <true> }
+{ 1 -1 > -> <true> }
+{ 0 min-int > -> <true> }
+{ max-int min-int > -> <true> }
+{ max-int 0 > -> <true> }
+
+{ 0 1 u< -> <true> }
+{ 1 2 u< -> <true> }
+{ 0 mid-uint u< -> <true> }
+{ 0 max-uint u< -> <true> }
+{ mid-uint max-uint u< -> <true> }
+{ 0 0 u< -> <false> }
+{ 1 1 u< -> <false> }
+{ 1 0 u< -> <false> }
+{ 2 1 u< -> <false> }
+{ mid-uint 0 u< -> <false> }
+{ max-uint 0 u< -> <false> }
+{ max-uint mid-uint u< -> <false> }
+
+{ 0 1 min -> 0 }
+{ 1 2 min -> 1 }
+{ -1 0 min -> -1 }
+{ -1 1 min -> -1 }
+{ min-int 0 min -> min-int }
+{ min-int max-int min -> min-int }
+{ 0 max-int min -> 0 }
+{ 0 0 min -> 0 }
+{ 1 1 min -> 1 }
+{ 1 0 min -> 0 }
+{ 2 1 min -> 1 }
+{ 0 -1 min -> -1 }
+{ 1 -1 min -> -1 }
+{ 0 min-int min -> min-int }
+{ max-int min-int min -> min-int }
+{ max-int 0 min -> 0 }
+
+{ 0 1 max -> 1 }
+{ 1 2 max -> 2 }
+{ -1 0 max -> 0 }
+{ -1 1 max -> 1 }
+{ min-int 0 max -> 0 }
+{ min-int max-int max -> max-int }
+{ 0 max-int max -> max-int }
+{ 0 0 max -> 0 }
+{ 1 1 max -> 1 }
+{ 1 0 max -> 1 }
+{ 2 1 max -> 2 }
+{ 0 -1 max -> 0 }
+{ 1 -1 max -> 1 }
+{ 0 min-int max -> 0 }
+{ max-int min-int max -> max-int }
+{ max-int 0 max -> max-int }
+
+\ ------------------------------------------------------------------------
+testing stack ops: 2drop 2dup 2over 2swap ?dup depth drop dup over rot swap
+
+{ 1 2 2drop -> }
+{ 1 2 2dup -> 1 2 1 2 }
+{ 1 2 3 4 2over -> 1 2 3 4 1 2 }
+{ 1 2 3 4 2swap -> 3 4 1 2 }
+{ 0 ?dup -> 0 }
+{ 1 ?dup -> 1 1 }
+{ -1 ?dup -> -1 -1 }
+{ depth -> 0 }
+{ 0 depth -> 0 1 }
+{ 0 1 depth -> 0 1 2 }
+{ 0 drop -> }
+{ 1 2 drop -> 1 }
+{ 1 dup -> 1 1 }
+{ 1 2 over -> 1 2 1 }
+{ 1 2 3 rot -> 2 3 1 }
+{ 1 2 swap -> 2 1 }
+
+\ ------------------------------------------------------------------------
+testing >r r> r@
+
+{ : gr1 >r r> ; -> }
+{ : gr2 >r r@ r> drop ; -> }
+{ 123 gr1 -> 123 }
+{ 123 gr2 -> 123 }
+{ 1s gr1 -> 1s }    ( return stack holds cells )
+
+\ ------------------------------------------------------------------------
+testing add/subtract: + - 1+ 1- abs negate
+
+{ 0 5 + -> 5 }
+{ 5 0 + -> 5 }
+{ 0 -5 + -> -5 }
+{ -5 0 + -> -5 }
+{ 1 2 + -> 3 }
+{ 1 -2 + -> -1 }
+{ -1 2 + -> 1 }
+{ -1 -2 + -> -3 }
+{ -1 1 + -> 0 }
+{ mid-uint 1 + -> mid-uint+1 }
+
+{ 0 5 - -> -5 }
+{ 5 0 - -> 5 }
+{ 0 -5 - -> 5 }
+{ -5 0 - -> -5 }
+{ 1 2 - -> -1 }
+{ 1 -2 - -> 3 }
+{ -1 2 - -> -3 }
+{ -1 -2 - -> 1 }
+{ 0 1 - -> -1 }
+{ mid-uint+1 1 - -> mid-uint }
+
+{ 0 1+ -> 1 }
+{ -1 1+ -> 0 }
+{ 1 1+ -> 2 }
+{ mid-uint 1+ -> mid-uint+1 }
+
+{ 2 1- -> 1 }
+{ 1 1- -> 0 }
+{ 0 1- -> -1 }
+{ mid-uint+1 1- -> mid-uint }
+
+{ 0 negate -> 0 }
+{ 1 negate -> -1 }
+{ -1 negate -> 1 }
+{ 2 negate -> -2 }
+{ -2 negate -> 2 }
+
+{ 0 abs -> 0 }
+{ 1 abs -> 1 }
+{ -1 abs -> 1 }
+{ min-int abs -> mid-uint+1 }
+
+\ ------------------------------------------------------------------------
+testing multiply: s>d * m* um*
+
+{ 0 s>d -> 0 0 }
+{ 1 s>d -> 1 0 }
+{ 2 s>d -> 2 0 }
+{ -1 s>d -> -1 -1 }
+{ -2 s>d -> -2 -1 }
+{ min-int s>d -> min-int -1 }
+{ max-int s>d -> max-int 0 }
+
+{ 0 0 m* -> 0 s>d }
+{ 0 1 m* -> 0 s>d }
+{ 1 0 m* -> 0 s>d }
+{ 1 2 m* -> 2 s>d }
+{ 2 1 m* -> 2 s>d }
+{ 3 3 m* -> 9 s>d }
+{ -3 3 m* -> -9 s>d }
+{ 3 -3 m* -> -9 s>d }
+{ -3 -3 m* -> 9 s>d }
+{ 0 min-int m* -> 0 s>d }
+{ 1 min-int m* -> min-int s>d }
+{ 2 min-int m* -> 0 1s }
+{ 0 max-int m* -> 0 s>d }
+{ 1 max-int m* -> max-int s>d }
+{ 2 max-int m* -> max-int 1 lshift 0 }
+{ min-int min-int m* -> 0 msb 1 rshift }
+{ max-int min-int m* -> msb msb 2/ }
+{ max-int max-int m* -> 1 msb 2/ invert }
+
+{ 0 0 * -> 0 } \ test identities
+{ 0 1 * -> 0 }
+{ 1 0 * -> 0 }
+{ 1 2 * -> 2 }
+{ 2 1 * -> 2 }
+{ 3 3 * -> 9 }
+{ -3 3 * -> -9 }
+{ 3 -3 * -> -9 }
+{ -3 -3 * -> 9 }
+
+{ mid-uint+1 1 rshift 2 * -> mid-uint+1 }
+{ mid-uint+1 2 rshift 4 * -> mid-uint+1 }
+{ mid-uint+1 1 rshift mid-uint+1 or 2 * -> mid-uint+1 }
+
+{ 0 0 um* -> 0 0 }
+{ 0 1 um* -> 0 0 }
+{ 1 0 um* -> 0 0 }
+{ 1 2 um* -> 2 0 }
+{ 2 1 um* -> 2 0 }
+{ 3 3 um* -> 9 0 }
+
+{ mid-uint+1 1 rshift 2 um* -> mid-uint+1 0 }
+{ mid-uint+1 2 um* -> 0 1 }
+{ mid-uint+1 4 um* -> 0 2 }
+{ 1s 2 um* -> 1s 1 lshift 1 }
+{ max-uint max-uint um* -> 1 1 invert }
+
+\ ------------------------------------------------------------------------
+testing divide: fm/mod sm/rem um/mod */ */mod / /mod mod
+
+{ 0 s>d 1 fm/mod -> 0 0 }
+{ 1 s>d 1 fm/mod -> 0 1 }
+{ 2 s>d 1 fm/mod -> 0 2 }
+{ -1 s>d 1 fm/mod -> 0 -1 }
+{ -2 s>d 1 fm/mod -> 0 -2 }
+{ 0 s>d -1 fm/mod -> 0 0 }
+{ 1 s>d -1 fm/mod -> 0 -1 }
+{ 2 s>d -1 fm/mod -> 0 -2 }
+{ -1 s>d -1 fm/mod -> 0 1 }
+{ -2 s>d -1 fm/mod -> 0 2 }
+{ 2 s>d 2 fm/mod -> 0 1 }
+{ -1 s>d -1 fm/mod -> 0 1 }
+{ -2 s>d -2 fm/mod -> 0 1 }
+{  7 s>d  3 fm/mod -> 1 2 }
+{  7 s>d -3 fm/mod -> -2 -3 }
+{ -7 s>d  3 fm/mod -> 2 -3 }
+{ -7 s>d -3 fm/mod -> -1 2 }
+{ max-int s>d 1 fm/mod -> 0 max-int }
+{ min-int s>d 1 fm/mod -> 0 min-int }
+{ max-int s>d max-int fm/mod -> 0 1 }
+{ min-int s>d min-int fm/mod -> 0 1 }
+{ 1s 1 4 fm/mod -> 3 max-int }
+{ 1 min-int m* 1 fm/mod -> 0 min-int }
+{ 1 min-int m* min-int fm/mod -> 0 1 }
+{ 2 min-int m* 2 fm/mod -> 0 min-int }
+{ 2 min-int m* min-int fm/mod -> 0 2 }
+{ 1 max-int m* 1 fm/mod -> 0 max-int }
+{ 1 max-int m* max-int fm/mod -> 0 1 }
+{ 2 max-int m* 2 fm/mod -> 0 max-int }
+{ 2 max-int m* max-int fm/mod -> 0 2 }
+{ min-int min-int m* min-int fm/mod -> 0 min-int }
+{ min-int max-int m* min-int fm/mod -> 0 max-int }
+{ min-int max-int m* max-int fm/mod -> 0 min-int }
+{ max-int max-int m* max-int fm/mod -> 0 max-int }
+
+{ 0 s>d 1 sm/rem -> 0 0 }
+{ 1 s>d 1 sm/rem -> 0 1 }
+{ 2 s>d 1 sm/rem -> 0 2 }
+{ -1 s>d 1 sm/rem -> 0 -1 }
+{ -2 s>d 1 sm/rem -> 0 -2 }
+{ 0 s>d -1 sm/rem -> 0 0 }
+{ 1 s>d -1 sm/rem -> 0 -1 }
+{ 2 s>d -1 sm/rem -> 0 -2 }
+{ -1 s>d -1 sm/rem -> 0 1 }
+{ -2 s>d -1 sm/rem -> 0 2 }
+{ 2 s>d 2 sm/rem -> 0 1 }
+{ -1 s>d -1 sm/rem -> 0 1 }
+{ -2 s>d -2 sm/rem -> 0 1 }
+{  7 s>d  3 sm/rem -> 1 2 }
+{  7 s>d -3 sm/rem -> 1 -2 }
+{ -7 s>d  3 sm/rem -> -1 -2 }
+{ -7 s>d -3 sm/rem -> -1 2 }
+{ max-int s>d 1 sm/rem -> 0 max-int }
+{ min-int s>d 1 sm/rem -> 0 min-int }
+{ max-int s>d max-int sm/rem -> 0 1 }
+{ min-int s>d min-int sm/rem -> 0 1 }
+{ 1s 1 4 sm/rem -> 3 max-int }
+{ 2 min-int m* 2 sm/rem -> 0 min-int }
+{ 2 min-int m* min-int sm/rem -> 0 2 }
+{ 2 max-int m* 2 sm/rem -> 0 max-int }
+{ 2 max-int m* max-int sm/rem -> 0 2 }
+{ min-int min-int m* min-int sm/rem -> 0 min-int }
+{ min-int max-int m* min-int sm/rem -> 0 max-int }
+{ min-int max-int m* max-int sm/rem -> 0 min-int }
+{ max-int max-int m* max-int sm/rem -> 0 max-int }
+
+{ 0 0 1 um/mod -> 0 0 }
+{ 1 0 1 um/mod -> 0 1 }
+{ 1 0 2 um/mod -> 1 0 }
+{ 3 0 2 um/mod -> 1 1 }
+{ max-uint 2 um* 2 um/mod -> 0 max-uint }
+{ max-uint 2 um* max-uint um/mod -> 0 2 }
+{ max-uint max-uint um* max-uint um/mod -> 0 max-uint }
+
+: iffloored
+[ -3 2 / -2 = invert ] literal if postpone  \ then ;
+: ifsym
+[ -3 2 / -1 = invert ] literal if postpone  \ then ;
+
+\ the system might do either floored or symmetric division.
+\ since we have already tested m*, fm/mod, and sm/rem we can use them in test.
+iffloored : t/mod  >r s>d r> fm/mod ;
+iffloored : t/     t/mod swap drop ;
+iffloored : tmod   t/mod drop ;
+iffloored : t*/mod >r m* r> fm/mod ;
+iffloored : t*/    t*/mod swap drop ;
+ifsym     : t/mod  >r s>d r> sm/rem ;
+ifsym     : t/     t/mod swap drop ;
+ifsym     : tmod   t/mod drop ;
+ifsym     : t*/mod >r m* r> sm/rem ;
+ifsym     : t*/    t*/mod swap drop ;
+
+{ 0 1 /mod -> 0 1 t/mod }
+{ 1 1 /mod -> 1 1 t/mod }
+{ 2 1 /mod -> 2 1 t/mod }
+{ -1 1 /mod -> -1 1 t/mod }
+{ -2 1 /mod -> -2 1 t/mod }
+{ 0 -1 /mod -> 0 -1 t/mod }
+{ 1 -1 /mod -> 1 -1 t/mod }
+{ 2 -1 /mod -> 2 -1 t/mod }
+{ -1 -1 /mod -> -1 -1 t/mod }
+{ -2 -1 /mod -> -2 -1 t/mod }
+{ 2 2 /mod -> 2 2 t/mod }
+{ -1 -1 /mod -> -1 -1 t/mod }
+{ -2 -2 /mod -> -2 -2 t/mod }
+{ 7 3 /mod -> 7 3 t/mod }
+{ 7 -3 /mod -> 7 -3 t/mod }
+{ -7 3 /mod -> -7 3 t/mod }
+{ -7 -3 /mod -> -7 -3 t/mod }
+{ max-int 1 /mod -> max-int 1 t/mod }
+{ min-int 1 /mod -> min-int 1 t/mod }
+{ max-int max-int /mod -> max-int max-int t/mod }
+{ min-int min-int /mod -> min-int min-int t/mod }
+
+{ 0 1 / -> 0 1 t/ }
+{ 1 1 / -> 1 1 t/ }
+{ 2 1 / -> 2 1 t/ }
+{ -1 1 / -> -1 1 t/ }
+{ -2 1 / -> -2 1 t/ }
+{ 0 -1 / -> 0 -1 t/ }
+{ 1 -1 / -> 1 -1 t/ }
+{ 2 -1 / -> 2 -1 t/ }
+{ -1 -1 / -> -1 -1 t/ }
+{ -2 -1 / -> -2 -1 t/ }
+{ 2 2 / -> 2 2 t/ }
+{ -1 -1 / -> -1 -1 t/ }
+{ -2 -2 / -> -2 -2 t/ }
+{ 7 3 / -> 7 3 t/ }
+{ 7 -3 / -> 7 -3 t/ }
+{ -7 3 / -> -7 3 t/ }
+{ -7 -3 / -> -7 -3 t/ }
+{ max-int 1 / -> max-int 1 t/ }
+{ min-int 1 / -> min-int 1 t/ }
+{ max-int max-int / -> max-int max-int t/ }
+{ min-int min-int / -> min-int min-int t/ }
+
+{ 0 1 mod -> 0 1 tmod }
+{ 1 1 mod -> 1 1 tmod }
+{ 2 1 mod -> 2 1 tmod }
+{ -1 1 mod -> -1 1 tmod }
+{ -2 1 mod -> -2 1 tmod }
+{ 0 -1 mod -> 0 -1 tmod }
+{ 1 -1 mod -> 1 -1 tmod }
+{ 2 -1 mod -> 2 -1 tmod }
+{ -1 -1 mod -> -1 -1 tmod }
+{ -2 -1 mod -> -2 -1 tmod }
+{ 2 2 mod -> 2 2 tmod }
+{ -1 -1 mod -> -1 -1 tmod }
+{ -2 -2 mod -> -2 -2 tmod }
+{ 7 3 mod -> 7 3 tmod }
+{ 7 -3 mod -> 7 -3 tmod }
+{ -7 3 mod -> -7 3 tmod }
+{ -7 -3 mod -> -7 -3 tmod }
+{ max-int 1 mod -> max-int 1 tmod }
+{ min-int 1 mod -> min-int 1 tmod }
+{ max-int max-int mod -> max-int max-int tmod }
+{ min-int min-int mod -> min-int min-int tmod }
+
+{ 0 2 1 */ -> 0 2 1 t*/ }
+{ 1 2 1 */ -> 1 2 1 t*/ }
+{ 2 2 1 */ -> 2 2 1 t*/ }
+{ -1 2 1 */ -> -1 2 1 t*/ }
+{ -2 2 1 */ -> -2 2 1 t*/ }
+{ 0 2 -1 */ -> 0 2 -1 t*/ }
+{ 1 2 -1 */ -> 1 2 -1 t*/ }
+{ 2 2 -1 */ -> 2 2 -1 t*/ }
+{ -1 2 -1 */ -> -1 2 -1 t*/ }
+{ -2 2 -1 */ -> -2 2 -1 t*/ }
+{ 2 2 2 */ -> 2 2 2 t*/ }
+{ -1 2 -1 */ -> -1 2 -1 t*/ }
+{ -2 2 -2 */ -> -2 2 -2 t*/ }
+{ 7 2 3 */ -> 7 2 3 t*/ }
+{ 7 2 -3 */ -> 7 2 -3 t*/ }
+{ -7 2 3 */ -> -7 2 3 t*/ }
+{ -7 2 -3 */ -> -7 2 -3 t*/ }
+{ max-int 2 max-int */ -> max-int 2 max-int t*/ }
+{ min-int 2 min-int */ -> min-int 2 min-int t*/ }
+
+{ 0 2 1 */mod -> 0 2 1 t*/mod }
+{ 1 2 1 */mod -> 1 2 1 t*/mod }
+{ 2 2 1 */mod -> 2 2 1 t*/mod }
+{ -1 2 1 */mod -> -1 2 1 t*/mod }
+{ -2 2 1 */mod -> -2 2 1 t*/mod }
+{ 0 2 -1 */mod -> 0 2 -1 t*/mod }
+{ 1 2 -1 */mod -> 1 2 -1 t*/mod }
+{ 2 2 -1 */mod -> 2 2 -1 t*/mod }
+{ -1 2 -1 */mod -> -1 2 -1 t*/mod }
+{ -2 2 -1 */mod -> -2 2 -1 t*/mod }
+{ 2 2 2 */mod -> 2 2 2 t*/mod }
+{ -1 2 -1 */mod -> -1 2 -1 t*/mod }
+{ -2 2 -2 */mod -> -2 2 -2 t*/mod }
+{ 7 2 3 */mod -> 7 2 3 t*/mod }
+{ 7 2 -3 */mod -> 7 2 -3 t*/mod }
+{ -7 2 3 */mod -> -7 2 3 t*/mod }
+{ -7 2 -3 */mod -> -7 2 -3 t*/mod }
+{ max-int 2 max-int */mod -> max-int 2 max-int t*/mod }
+{ min-int 2 min-int */mod -> min-int 2 min-int t*/mod }
+
+\ ------------------------------------------------------------------------
+testing here , @ ! cell+ cells c, c@ c! chars 2@ 2! align aligned +! allot
+
+here 1 allot
+here
+constant 2nda
+constant 1sta
+{ 1sta 2nda u< -> <true> } \ here must grow with allot
+{ 1sta 1+ -> 2nda } \ ... by one address unit
+( missing test: negative allot )
+
+here 1 ,
+here 2 ,
+constant 2nd
+constant 1st
+{ 1st 2nd u< -> <true> } \ here must grow with allot
+{ 1st cell+ -> 2nd } \ ... by one cell
+{ 1st 1 cells + -> 2nd }
+{ 1st @ 2nd @ -> 1 2 }
+{ 5 1st ! -> }
+{ 1st @ 2nd @ -> 5 2 }
+{ 6 2nd ! -> }
+{ 1st @ 2nd @ -> 5 6 }
+{ 1st 2@ -> 6 5 }
+{ 2 1 1st 2! -> }
+{ 1st 2@ -> 2 1 }
+{ 1s 1st !  1st @ -> 1s } \ can store cell-wide value
+
+here 1 c,
+here 2 c,
+constant 2ndc
+constant 1stc
+{ 1stc 2ndc u< -> <true> } \ here must grow with allot
+{ 1stc char+ -> 2ndc } \ ... by one char
+{ 1stc 1 chars + -> 2ndc }
+{ 1stc c@ 2ndc c@ -> 1 2 }
+{ 3 1stc c! -> }
+{ 1stc c@ 2ndc c@ -> 3 2 }
+{ 4 2ndc c! -> }
+{ 1stc c@ 2ndc c@ -> 3 4 }
+
+align 1 allot here align here 3 cells allot
+constant a-addr  constant ua-addr
+{ ua-addr aligned -> a-addr }
+{    1 a-addr c!  a-addr c@ ->    1 }
+{ 1234 a-addr  !  a-addr  @ -> 1234 }
+{ 123 456 a-addr 2!  a-addr 2@ -> 123 456 }
+{ 2 a-addr char+ c!  a-addr char+ c@ -> 2 }
+{ 3 a-addr cell+ c!  a-addr cell+ c@ -> 3 }
+{ 1234 a-addr cell+ !  a-addr cell+ @ -> 1234 }
+{ 123 456 a-addr cell+ 2!  a-addr cell+ 2@ -> 123 456 }
+
+: bits  ( x -- u )
+0 swap begin dup while dup msb and if >r 1+ r> then 2* repeat drop ;
+( characters >= 1 au, <= size of cell, >= 8 bits )
+{ 1 chars 1 < -> <false> }
+{ 1 chars 1 cells > -> <false> }
+( tbd: how to find number of bits? )
+
+( cells >= 1 au, integral multiple of char size, >= 16 bits )
+{ 1 cells 1 < -> <false> }
+{ 1 cells 1 chars mod -> 0 }
+{ 1s bits 10 < -> <false> }
+
+{ 0 1st ! -> }
+{ 1 1st +! -> }
+{ 1st @ -> 1 }
+{ -1 1st +! 1st @ -> 0 }
+
+\ ------------------------------------------------------------------------
+testing char [char] [ ] bl s"
+
+{ bl -> 20 }
+{ char X -> 58 }
+{ char Hello -> 48 }
+{ : gc1 [char] X ; -> }
+{ : gc2 [char] Hello ; -> }
+{ gc1 -> 58 }
+{ gc2 -> 48 }
+{ : gc3 [ gc1 ] literal ; -> }
+{ gc3 -> 58 }
+{ : gc4 s" XY" ; -> }
+{ gc4 swap drop -> 2 }
+{ gc4 drop dup c@ swap char+ c@ -> 58 59 }
+
+\ ------------------------------------------------------------------------
+testing ' ['] find execute immediate count literal postpone state
+
+{ : gt1 123 ; -> }
+{ ' gt1 execute -> 123 }
+{ : gt2 ['] gt1 ; immediate -> }
+{ gt2 execute -> 123 }
+here 3 c, char g c, char t c, char 1 c, constant gt1string
+here 3 c, char g c, char t c, char 2 c, constant gt2string
+{ gt1string find -> ' gt1 -1 }
+{ gt2string find -> ' gt2 1 }
+( how to search for non-existent word? )
+{ : gt3 gt2 literal ; -> }
+{ gt3 -> ' gt1 }
+{ gt1string count -> gt1string char+ 3 }
+
+{ : gt4 postpone gt1 ; immediate -> }
+{ : gt5 gt4 ; -> }
+{ gt5 -> 123 }
+{ : gt6 345 ; immediate -> }
+{ : gt7 postpone gt6 ; -> }
+{ gt7 -> 345 }
+
+{ : gt8 state @ ; immediate -> }
+{ gt8 -> 0 }
+{ : gt9 gt8 literal ; -> }
+{ gt9 0= -> <false> }
+
+\ ------------------------------------------------------------------------
+testing if else then begin while repeat until recurse
+
+{ : gi1 if 123 then ; -> }
+{ : gi2 if 123 else 234 then ; -> }
+{ 0 gi1 -> }
+{ 1 gi1 -> 123 }
+{ -1 gi1 -> 123 }
+{ 0 gi2 -> 234 }
+{ 1 gi2 -> 123 }
+{ -1 gi1 -> 123 }
+
+{ : gi3 begin dup 5 < while dup 1+ repeat ; -> }
+{ 0 gi3 -> 0 1 2 3 4 5 }
+{ 4 gi3 -> 4 5 }
+{ 5 gi3 -> 5 }
+{ 6 gi3 -> 6 }
+
+{ : gi4 begin dup 1+ dup 5 > until ; -> }
+{ 3 gi4 -> 3 4 5 6 }
+{ 5 gi4 -> 5 6 }
+{ 6 gi4 -> 6 7 }
+
+{ : gi5 begin dup 2 > while dup 5 < while dup 1+ repeat 123 else 345 then ; -> }
+{ 1 gi5 -> 1 345 }
+{ 2 gi5 -> 2 345 }
+{ 3 gi5 -> 3 4 5 123 }
+{ 4 gi5 -> 4 5 123 }
+{ 5 gi5 -> 5 123 }
+
+{ : gi6  ( n -- 0,1,..n ) dup if dup >r 1- recurse r> then ; -> }
+{ 0 gi6 -> 0 }
+{ 1 gi6 -> 0 1 }
+{ 2 gi6 -> 0 1 2 }
+{ 3 gi6 -> 0 1 2 3 }
+{ 4 gi6 -> 0 1 2 3 4 }
+
+\ ------------------------------------------------------------------------
+testing do loop +loop i j unloop leave exit
+
+{ : gd1 do i loop ; -> }
+{ 4 1 gd1 -> 1 2 3 }
+{ 2 -1 gd1 -> -1 0 1 }
+{ mid-uint+1 mid-uint gd1 -> mid-uint }
+
+{ : gd2 do i -1 +loop ; -> }
+{ 1 4 gd2 -> 4 3 2 1 }
+{ -1 2 gd2 -> 2 1 0 -1 }
+{ mid-uint mid-uint+1 gd2 -> mid-uint+1 mid-uint }
+
+{ : gd3 do 1 0 do j loop loop ; -> }
+{ 4 1 gd3 -> 1 2 3 }
+{ 2 -1 gd3 -> -1 0 1 }
+{ mid-uint+1 mid-uint gd3 -> mid-uint }
+
+{ : gd4 do 1 0 do j loop -1 +loop ; -> }
+{ 1 4 gd4 -> 4 3 2 1 }
+{ -1 2 gd4 -> 2 1 0 -1 }
+{ mid-uint mid-uint+1 gd4 -> mid-uint+1 mid-uint }
+
+{ : gd5 123 swap 0 do i 4 > if drop 234 leave then loop ; -> }
+{ 1 gd5 -> 123 }
+{ 5 gd5 -> 123 }
+{ 6 gd5 -> 234 }
+
+{ : gd6   ( pat: {0 0},{0 0}{1 0}{1 1},{0 0}{1 0}{1 1}{2 0}{2 1}{2 2} )
+0 swap 0 do
+i 1+ 0 do i j + 3 = if i unloop i unloop exit then 1+ loop
+loop ; -> }
+{ 1 gd6 -> 1 }
+{ 2 gd6 -> 3 }
+{ 3 gd6 -> 4 1 2 }
+
+\ ------------------------------------------------------------------------
+testing defining words: : ; constant variable create does> >body
+
+{ 123 constant x123 -> }
+{ x123 -> 123 }
+{ : equ constant ; -> }
+{ x123 equ y123 -> }
+{ y123 -> 123 }
+
+{ variable v1 -> }
+{ 123 v1 ! -> }
+{ v1 @ -> 123 }
+
+{ : nop : postpone ; ; -> }
+{ nop nop1 nop nop2 -> }
+{ nop1 -> }
+{ nop2 -> }
+
+{ : does1 does> @ 1 + ; -> }
+{ : does2 does> @ 2 + ; -> }
+{ create cr1 -> }
+{ cr1 -> here }
+{ ' cr1 >body -> here }
+{ 1 , -> }
+{ cr1 @ -> 1 }
+{ does1 -> }
+{ cr1 -> 2 }
+{ does2 -> }
+{ cr1 -> 3 }
+
+{ : weird: create does> 1 + does> 2 + ; -> }
+{  weird: w1 -> }
+{ ' w1 >body -> here }
+{ w1 -> here 1 + }
+{ w1 -> here 2 + }
+
+\ ------------------------------------------------------------------------
+testing evaluate
+
+: ge1 s" 123" ; immediate
+: ge2 s" 123 1+" ; immediate
+: ge3 s" : ge4 345 ;" ;
+: ge5 evaluate ; immediate
+
+{ ge1 evaluate -> 123 } ( test evaluate in interp. state )
+{ ge2 evaluate -> 124 }
+{ ge3 evaluate -> }
+{ ge4 -> 345 }
+
+{ : ge6 ge1 ge5 ; -> } ( test evaluate in compile state )
+{ ge6 -> 123 }
+{ : ge7 ge2 ge5 ; -> }
+{ ge7 -> 124 }
+
+\ ------------------------------------------------------------------------
+testing source >in word
+
+ : gs1 s" source" 2dup evaluate
+ >r swap >r = r> r> = ;
+{ gs1 -> <true> <true> }
+
+variable scans
+: rescan?  -1 scans +! scans @ if 0 >in ! then ;
+
+{ 2 scans !
+345 rescan?
+-> 345 345 }
+
+: gs2  5 scans ! s" 123 rescan?" evaluate ;
+{ gs2 -> 123 123 123 123 123 }
+
+: gs3 word count swap c@ ;
+{ bl gs3 hello -> 5 char h }
+{ char " gs3 goodbye" -> 7 char g }
+{ bl gs3
+drop -> 0 } \ blank line return zero-length string
+
+: gs4 source >in ! drop ;
+{ gs4 123 456
+-> }
+
+\ ------------------------------------------------------------------------
+testing <# # #s #> hold sign base >number hex decimal
+
+: s=   \  ( addr1 c1 addr2 c2 -- t/f ) compare two strings.
+>r swap r@ = if \ make sure strings have same length
+r> ?dup if \ if non-empty strings
+0 do
+over c@ over c@ - if 2drop <false> unloop exit then
+swap char+ swap char+
+ loop
+then
+2drop <true> \ if we get here, strings match
+else
+r> drop 2drop <false> \ lengths mismatch
+then ;
+
+: gp1  <# 41 hold 42 hold 0 0 #> s" BA" s= ;
+{ gp1 -> <true> }
+
+: gp2  <# -1 sign 0 sign -1 sign 0 0 #> s" --" s= ;
+{ gp2 -> <true> }
+
+: gp3  <# 1 0 # # #> s" 01" s= ;
+{ gp3 -> <true> }
+
+: gp4  <# 1 0 #s #> s" 1" s= ;
+{ gp4 -> <true> }
+
+24 constant max-base \ base 2 .. 36
+: count-bits
+0 0 invert begin dup while >r 1+ r> 2* repeat drop ;
+count-bits 2* constant #bits-ud \ number of bits in ud
+
+: gp5
+base @ <true>
+max-base 1+ 2 do \ for each possible base
+i base ! \ tbd: assumes base works
+i 0 <# #s #> s" 10" s= and
+loop
+swap base ! ;
+{ gp5 -> <true> }
+
+: gp6
+base @ >r  2 base !
+max-uint max-uint <# #s #> \ maximum ud to binary
+r> base ! \ s: c-addr u
+dup #bits-ud = swap
+0 do \ s: c-addr flag
+over c@ [char] 1 = and \ all ones
+>r char+ r>
+loop swap drop ;
+{ gp6 -> <true> }
+
+: gp7
+base @ >r  max-base base !
+<true>
+A 0 do
+i 0 <# #s #>
+>r c@ 30 i + = and r> 1 = and
+loop
+max-base 1+ A do
+i 0 <# #s #>
+>r c@ 41 i A - + = and r> 1 = and
+loop
+r> base ! ;
+\ { gp7 -> <true> } \ bug: fails on jhforth: lowercase a
+
+\ >number tests
+create gn-buf 0 c,
+: gn-string gn-buf 1 ;
+: gn-consumed gn-buf char+ 0 ;
+: gn'  [char] ' word char+ c@ gn-buf c!  gn-string ;
+
+{ 0 0 gn' 0' >number -> 0 0 gn-consumed }
+{ 0 0 gn' 1' >number -> 1 0 gn-consumed }
+{ 1 0 gn' 1' >number -> base @ 1+ 0 gn-consumed }
+{ 0 0 gn' -' >number -> 0 0 gn-string } \ should fail to convert these
+{ 0 0 gn' +' >number -> 0 0 gn-string }
+{ 0 0 gn' .' >number -> 0 0 gn-string }
+
+: >number-based
+base @ >r base ! >number r> base ! ;
+
+{ 0 0 gn' 2' 10 >number-based -> 2 0 gn-consumed }
+{ 0 0 gn' 2'  2 >number-based -> 0 0 gn-string }
+{ 0 0 gn' F' 10 >number-based -> F 0 gn-consumed }
+{ 0 0 gn' G' 10 >number-based -> 0 0 gn-string }
+{ 0 0 gn' G' max-base >number-based -> 10 0 gn-consumed }
+{ 0 0 gn' Z' max-base >number-based -> 23 0 gn-consumed }
+
+: gn1 \  ( ud base -- ud' len ) ud should equal ud' and len should be zero.
+base @ >r base !
+<# #s #>
+0 0 2swap >number swap drop \ return length only
+r> base ! ;
+{ 0 0 2 gn1 -> 0 0 0 }
+{ max-uint 0 2 gn1 -> max-uint 0 0 }
+{ max-uint dup 2 gn1 -> max-uint dup 0 }
+{ 0 0 max-base gn1 -> 0 0 0 }
+{ max-uint 0 max-base gn1 -> max-uint 0 0 }
+{ max-uint dup max-base gn1 -> max-uint dup 0 }
+
+: gn2 \  ( -- 16 10 )
+base @ >r  hex base @  decimal base @  r> base ! ;
+{ gn2 -> 10 a }
+
+\ ------------------------------------------------------------------------
+testing fill move
+
+create fbuf 00 c, 00 c, 00 c,
+create sbuf 12 c, 34 c, 56 c,
+: seebuf fbuf c@  fbuf char+ c@  fbuf char+ char+ c@ ;
+
+{ fbuf 0 20 fill -> }
+{ seebuf -> 00 00 00 }
+
+{ fbuf 1 20 fill -> }
+{ seebuf -> 20 00 00 }
+
+{ fbuf 3 20 fill -> }
+{ seebuf -> 20 20 20 }
+
+{ fbuf fbuf 3 chars move -> } \ bizarre special case
+{ seebuf -> 20 20 20 }
+
+{ sbuf fbuf 0 chars move -> }
+{ seebuf -> 20 20 20 }
+
+{ sbuf fbuf 1 chars move -> }
+{ seebuf -> 12 20 20 }
+
+{ sbuf fbuf 3 chars move -> }
+{ seebuf -> 12 34 56 }
+
+{ fbuf fbuf char+ 2 chars move -> }
+{ seebuf -> 12 12 34 }
+
+{ fbuf char+ fbuf 2 chars move -> }
+{ seebuf -> 12 34 34 }
+
+\ ------------------------------------------------------------------------
+testing output: . ." cr emit space spaces type u.
+
+: output-test
+." you should see 0-9 separated by a space:" cr
+9 1+ 0 do i . loop cr
+." you should see 0-9  (with no spaces):" cr
+[char] 9 1+ [char] 0 do i 0 spaces emit loop cr
+." you should see a-g separated by a space:" cr
+[char] g 1+ [char] a do i emit space loop cr
+." you should see 0-5 separated by two spaces:" cr
+5 1+ 0 do i [char] 0 + emit 2 spaces loop cr
+." you should see two separate lines:" cr
+s" line 1" type cr s" line 2" type cr
+." you should see the number ranges of signed and unsigned numbers:" cr
+."   signed: " min-int . max-int . cr
+." unsigned: " 0 u. max-uint u. cr
+;
+
+{ output-test -> }
+
+\ ------------------------------------------------------------------------
+testing input: accept
+
+create abuf 80 chars allot
+
+: accept-test
+cr ." please type up to 80 characters:" cr
+abuf 80 accept
+cr ." received: " [char] " emit
+abuf swap type [char] " emit cr
+;
+
+{ accept-test -> }
+
+\ ------------------------------------------------------------------------
+testing dictionary search rules
+
+{ : gdx   123 ; : gdx   gdx 234 ; -> }
+
+{ gdx -> 123 234 }
+
+
+
+\ To test the ANS Forth Exception word set and extension words
+
+\ Copyright (C) Gerry Jackson 2006, 2007
+
+\ This program is free software; you can redistribute it and/or
+\ modify it any way.
+
+\ This program is distributed in the hope that it will be useful,
+\ but WITHOUT ANY WARRANTY; without even the implied warranty of
+\ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+\ The tests are not claimed to be comprehensive or correct 
+
+\ --------------------------------------------------------------------
+\ Version 0.3 6 March 2009 { and } replaced with { and }
+\         0.2 20 April 2007 ANS Forth words changed to upper case
+\         0.1 Oct 2006 First version released
+
+\ --------------------------------------------------------------------
+\ The tests are based on John Hayes test program for the core word set
+\ and requires those files to have been loaded
+
+\ Words tested in this file are:
+\     CATCH THROW ABORT ABORT"
+
+\ --------------------------------------------------------------------
+\ Assumptions and dependencies:
+\     - the forth system under test throws an exception with throw
+\       code -13 for a word not found by the text interpreter. The
+\       undefined word used is $$qweqweqwert$$,  if this happens to be
+\       a valid word in your system change the definition of t7 below
+\     - tester.fr has been loaded prior to this file
+\     - CASE, OF, ENDOF and ENDCASE from the core extension wordset
+\       are present and work correctly
+\ --------------------------------------------------------------------
+
+testing catch throw
+
+decimal
+
+: t1 9 ;
+: c1 1 2 3 ['] t1 catch ;
+{ c1 -> 1 2 3 9 0 }            \ no throw executed
+
+: t2 8 0 throw ;
+: c2 1 2 ['] t2 catch ;
+{ c2 -> 1 2 8 0 }                \ 0 throw does nothing
+
+: t3 7 8 9 99 throw ;
+: c3 1 2 ['] t3 catch ;
+{ c3 -> 1 2 99 }                \ restores stack to catch depth
+
+: t4 1- dup 0 > if recurse else 999 throw -222 then ;
+: c4 3 4 5 10 ['] t4 catch -111 ;
+{ c4 -> 3 4 5 0 999 -111 }    \ test return stack unwinding
+
+: t5 2drop 2drop 9999 throw ;
+: c5 1 2 3 4 ['] t5 catch                \ test depth restored correctly
+    depth >r drop 2drop 2drop r> ;    \ after stack has been emptied
+{ c5 -> 5 }
+
+\ ------------------------------------------------------------------------------
+
+testing abort abort"
+
+-1    constant exc_abort
+-2 constant exc_abort"
+-13 constant exc_undef
+: t6 abort ;
+
+\ the 77 in t10 is necessary for the second abort" test as the data stack
+\ is restored to a depth of 2 when throw is executed. the 77 ensures the top
+\ of stack value is known for the results check
+
+: t10 77 swap abort" this should not be displayed" ;
+: c6 catch
+    case exc_abort  of 11 endof
+         exc_abort" of 12 endof
+          exc_undef  of 13 endof
+    endcase
+;
+
+{ 1 2 ' t6 c6  -> 1 2 11 }        \ test that abort is caught
+{ 3 0 ' t10 c6 -> 3 77 }        \ abort" does nothing
+{ 4 5 ' t10 c6 -> 4 77 12 }    \ abort" caught, no message
+
+\ ------------------------------------------------------------------------------
+
+testing a system generated exception
+
+: t7 s" 333 $$qweqweqwert$$ 334" evaluate 335 ;
+: t8 s" 222 t7 223" evaluate 224 ;
+: t9 s" 111 112 t8 113" evaluate 114 ;
+
+{ 6 7 ' t9 c6 3 -> 6 7 13 3 }            \ test unlinking of sources
+
+\ ------------------------------------------------------------------------------
+
+cr .( end of exception word tests) cr
+
+\ To test the ANS Forth search-order word set and search order extensions
+
+\ Copyright (C) Gerry Jackson 2006, 2007
+
+\ This program is free software; you can redistribute it and/or
+\ modify it any way.
+
+\ This program is distributed in the hope that it will be useful,
+\ but WITHOUT ANY WARRANTY; without even the implied warranty of
+\ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+\ The tests are not claimed to be comprehensive or correct 
+
+\ ------------------------------------------------------------------------------
+\ Version 0.4 6 March 2009 { and } replaced with { and }
+\         0.3 20 April 2007 ANS Forth words changed to upper case
+\         0.2 30 Oct 2006 updated following GForth tests to get
+\             initial search order into a known state
+\         0.1 Oct 2006 First version released
+
+\ ------------------------------------------------------------------------------
+\ The tests are based on John Hayes test program for the core word set
+\ and requires those files to have been loaded
+
+\ Words tested in this file are:
+\     FORTH-WORDLIST GET-ORDER SET-ORDER ALSO ONLY FORTH GET-CURRENT
+\     SET-CURRENT DEFINITIONS PREVIOUS SEARCH-WORDLIST WORDLIST FIND
+\ Words not fully tested:
+\     ORDER ONLY tests that it executes, display is implementation
+\           dependent
+
+\ ------------------------------------------------------------------------------
+\ Assumptions and dependencies:
+\     - tester.fr has been loaded prior to this file
+\     - that ONLY FORTH DEFINITIONS will work at the start of the file
+\       to ensure the search order is in a known state
+\ ------------------------------------------------------------------------------
+
+only forth definitions
+
+testing search-order word set
+
+decimal
+
+variable wid1  variable wid2
+
+: save-orderlist ( widn ... wid1 n -> ) dup , 0 ?do , loop ;
+
+\ ------------------------------------------------------------------------------
+
+testing forth-wordlist get-order set-order
+
+{ forth-wordlist wid1 ! -> }
+
+create order-list
+
+{ get-order save-orderlist -> }
+
+: get-orderlist  ( -- widn ... wid1 n )
+order-list dup @ cells  ( -- ad n )
+over +                  ( -- ad ad' )
+?do i @ -1 cells +loop  ( -- )
+;
+
+{ get-order over -> get-order wid1 @ } \ forth wordlist at top
+{ get-order set-order -> }             \ effectively noop
+{ get-order -> get-orderlist }         \ check nothing changed
+{ get-orderlist drop get-orderlist 2* set-order -> }
+{ get-order -> get-orderlist drop get-orderlist 2* }
+{ get-orderlist set-order get-order -> get-orderlist }
+
+\ ------------------------------------------------------------------------------
+
+testing also only forth
+
+{ also get-order -> get-orderlist over swap 1+ }
+{ only forth get-order -> get-orderlist }    \ see assumptions above
+
+\ ------------------------------------------------------------------------------
+
+testing get-current set-current wordlist (simple)
+
+{ get-current -> wid1 @ }        \ see assumptions above
+{ wordlist wid2 ! -> }
+{ wid2 @ set-current -> }
+{ get-current -> wid2 @ }
+{ wid1 @ set-current -> }
+
+\ ------------------------------------------------------------------------------
+
+testing minimum search order list contains forth-wordlist and set-order
+
+: so1 set-order ;    \ in case it is unavailable in the forth wordlist
+
+{ only forth-wordlist 1 set-order get-orderlist so1 -> }
+{ get-order -> get-orderlist }
+
+\ ------------------------------------------------------------------------------
+
+testing get-order set-order with 0 and -1 number of wids argument
+
+: so2a get-order get-orderlist set-order ; \  to recover search order
+: so2 0 set-order so2a ;
+
+{ so2 -> 0 }         \ 0 set-order leaves an empty search order
+
+: so3 -1 set-order so2a ;
+: so4 only so2a ;
+
+{ so3 -> so4 }       \ -1 set-order = only
+
+\ ------------------------------------------------------------------------------
+
+testing definitions previous
+
+{ only forth definitions -> }
+{ get-current -> forth-wordlist }
+{ get-order wid2 @ swap 1+ set-order definitions get-current -> wid2 @ }
+{ get-order -> get-orderlist wid2 @ swap 1+ }
+{ previous get-order -> get-orderlist }
+{ definitions get-current -> forth-wordlist }
+
+\ ------------------------------------------------------------------------------
+
+testing search-wordlist wordlist find
+
+only forth definitions
+variable xt  ' dup xt !
+variable xti ' .( xti !    ( immediate word )
+
+{ s" dup" wid1 @ search-wordlist -> xt  @ -1 }
+{ s" .("  wid1 @ search-wordlist -> xti @  1 }
+{ s" dup" wid2 @ search-wordlist ->        0 }
+
+: c"dup" c" dup" ;
+: c".("  c" .(" ;
+: c"x" c" unknown word"  ;
+
+{ c"dup" find -> xt  @ -1 }
+{ c".("  find -> xti @  1 }
+{ c"x"   find -> c"x"   0 }
+
+\ ------------------------------------------------------------------------------
+
+testing new definitions are put into the correct wordlist
+
+: alsowid2 also get-order wid2 @ rot drop swap set-order ;
+alsowid2
+: w1 1234  ;
+definitions
+: w1 -9876 ; immediate
+
+only forth
+{ w1 -> 1234 }
+definitions
+{ w1 -> 1234 }
+alsowid2
+{ w1 -> -9876 }
+definitions
+{ w1 -> -9876 } 
+
+only forth definitions
+
+: so5  dup if swap execute then ;
+
+{ s" w1" wid1 @ search-wordlist so5 -> -1  1234 }
+{ s" w1" wid2 @ search-wordlist so5 ->  1 -9876 }
+
+: c"w1" c" w1" ;
+{ alsowid2 c"w1" find so5 ->  1 -9876 }
+{ previous c"w1" find so5 -> -1  1234 }
+
+\ ------------------------------------------------------------------------------
+
+testing order  \ should display search order and compilation wordlist
+
+cr .( only forth definitions search order and compilation list) cr
+{ only forth definitions order -> }
+
+cr .( plus another unnamed wordlist at the head of the search order) cr
+{ alsowid2 definitions order -> }
+
+\ ------------------------------------------------------------------------------
+
+cr .( end of search order word tests) cr
+
+only forth definitions
+
+\ leave search order in the standard state
+
+
+cr .( End of core tests ) cr
+
+s" filetest.txt" included
+

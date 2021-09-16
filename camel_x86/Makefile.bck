@@ -1,0 +1,28 @@
+camel86_32: camel86_32.S camel86_32d.S camel86_32h.S Makefile
+	gcc -ggdb  -m32 -Wa,-aclmns=camel86_32.lst -nostdlib -static -Wl,-Map=camel86_32.map   -Wl,--build-id=none  -Wl,--cref -o camel86_32  camel86_32.S
+
+jonesforth: jonesforth.S
+	gcc  -g -m32  -nostdlib -static -Wl,--build-id=none -o jonesforth  jonesforth.S
+
+
+# Makefile for JamesM's kernel tutorials.
+# The C and C++ rules are already setup by default.
+# The only one that needs changing is the assembler
+# rule, as we use nasm instead of GNU as.
+
+#SOURCES=boot.o
+
+#CFLAGS=
+#LDFLAGS=-Tlink.ld
+#ASFLAGS=-felf
+
+#all: $(SOURCES) link 
+
+#clean:
+# »  -rm *.o kernel
+
+#link:
+# »  ld $(LDFLAGS) -o kernel $(SOURCES)
+
+#.s.o:
+# »  nasm $(ASFLAGS) $< 

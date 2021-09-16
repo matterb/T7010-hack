@@ -1,0 +1,54 @@
+PAYLOAD_DIR := /home/bannisp/src/coreboot/payloads/camelforth
+LIBPAYLOAD_DIR := /home/bannisp/src/coreboot/payloads/libpayload/install/libpayload
+SRC_DIR := /home/bannisp/src/camelforth/camel_x86
+LPGCC := $(LIBPAYLOAD_DIR)/bin/lpgcc
+LPAS := $(LIBPAYLOAD_DIR)/bin/lpas
+CFLAGS := -Wall -Werror -Os
+
+
+
+#SOURCES=
+
+#CFLAGS=
+#LDFLAGS=
+#ASFLAGS=
+
+#all: $(SOURCES) link 
+
+#clean:
+# 
+
+#link:
+#	ld $(LDFLAGS) -o  $(SOURCES)
+
+#.S.o:
+#	gcc  $(ASFLAGS) $< 
+
+all: camelforth.elf camel86_32
+
+# camel86_32: camel86_32.S camel86_32d.S camel86_32h.S camel86_32o.S Makefile
+#	gcc -g -m32 -Wa,-aclmns=camel86_32.lst -nostdlib -static -Wl,-Map=camel86_32.map   -Wl,--build-id=none  -Wl,--cref -o camel86_32  camel86_32.S
+#	gcc -ggdb  -m32 -Wa,-aclmns=camel86_32.lst -nostdlib -static -Wl,-Map=camel86_32.map   -Wl,--build-id=none  -Wl,--cref -o camel86_32  camel86_32.S
+
+camel86_32: camel86_32_1.0.S camel86_32d_1.0.S camel86_32h_1.1.S camel86_32o_1.0.S Makefile
+	gcc -DLINUX -g -m32 -Wa,-aclmns=camel86_32.lst -nostdlib -static -Wl,-Map=camel86_32.map   -Wl,--build-id=none  -Wl,--cref -o camel86_32  camel86_32_1.0.S
+#	gcc -ggdb  -m32 -Wa,-aclmns=camel86_32.lst -nostdlib -static -Wl,-Map=camel86_32.map   -Wl,--build-id=none  -Wl,--cref -o camel86_32  camel86_32.S
+
+
+camelforth.elf: autoload.c camel86_32_1.0.S
+	$(LPGCC) -DCOREBOOT -c -o camelforth.o ${SRC_DIR}/camel86_32_1.0.S
+	$(LPGCC) -DCOREBOOT -c -o autoload.o autoload.c 
+	$(LPGCC) -DCOREBOOT -o camelforth.elf camelforth.o autoload.o 
+	strip camelforth.elf
+
+autoload.o:	autoload.c
+	$(LPGCC) -c -o autoload.o  autoload.c
+
+	
+archive:
+	tar -zcvf camel86_32_linux.tgz ./camel86_32*.S ./unistd_x86.h ./Makefile ./glossary* ./contrib ./thinclient ./autoload.c
+
+
+clean:
+	rm -f camelforth.elf camel86_32 *.o
+

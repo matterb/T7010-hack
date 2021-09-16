@@ -1,0 +1,86 @@
+Autoload routine does load immediately on startup. User must enter cariage return.  The key routine was rewritten to check key?
+
+NOT IMPLEMENTED:
+m*/  ( d1 n1 n2 -- d2 )  d2=(d1*n1)/n2
+action-of
+marker 
+roll 
+s\"
+unused
+[compile]
+at-xy
+page
+require
+required
+?
+see
+replaces
+substitues
+
+
+: t* ( ud u -- ut )    unsigned triple  multiplication
+dup rot un* 2>r
+um* 0 2r> d+
+;
+
+: t/  ( ut u -- ud )  \ unsigned triple / unsigned
+>r r@ um/mod swap
+rot r> um/mod swap drop
+0 2swap swap d+
+;
+
+: um*/ ( ud u -- ud )
+ >r t* r> t/
+;
+
+
+
+\ fixed point package
+
+variable fscl  \ scaling factor
+variable fdpl  \ fixed point decimal places
+: fplaces ( --n )   fdpl @ ; \ number of implied decimal places
+: fscale ( -- n) fscl @ ;  \ fixed point scaling factor
+: fixed ( n -- ) 
+  0 max 3 min fdpl !    \ 0 to 3 decimal places
+  1 fplaces 0 ?do 10 * loop fscale !     \ set scale 
+;
+
+3 fixed   \ default is 3 places
+
+:noname ( fn -- c-addr u )  \ format fixed point for printing
+  tuck dabs 
+  <# bl hold 
+     fdpl @ 0 ?do # loop
+     [char] . hold #s
+     rot sign
+   #>
+;
+
+dup
+
+: f. ( fp -- ) ,xt type ;    \ print fixed point number
+: f.r ( fp u -- )    \ print right justified in field of size u
+  >r ,xt
+  r> over - 0 ?do bl emit loop
+  type
+;
+
+
+: fix ( d -- fp )
+  dpl @ 0<
+  if s>d 0 dpl ! then
+  dpl @ fplaces <> if
+     dpl @ fplaces < if
+        fplaces dpl @ ?do d10* loop
+      else abort" Too Many decimal places" then
+  then
+;
+
+       
+: fix* (f1 f2 -- f3 )   \ multiply fixed point numbers
+ rot 2dup xor >r
+ -rot dabs 2swap dabs
+ dup >r rotdup >r >r over >r
+ >r swap up >r um*
+

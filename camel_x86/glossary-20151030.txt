@@ -1,0 +1,1067 @@
+Memory map
+
+
+tib 		- 0x0080 text input buffer
+u0 		+ 0x0000 terminal console user area start ( term ) 
+>in 	+ 0x0004 offset into input SOURCE buffer  ( TIB)
+base	+ 0x0008 number conversion radix
+state	+ 0x000c compiler state compiling/interpreting
+dp		+ 0x0010 dictionary pointer
+'source	+ 0x0014 address and length of input source buffer
+latest	+ 0x001c last word in dictionary
+hp		+ 0x0020 offset into hold buffer 
+lp		+ 0x0024 leave stack pointer
+emitv	+ 0x0028 emit vector
+keyv	+ 0x002c key vector
+kev?	+ 0x0030 key query vector
+iointv	+ 0x0034 i/o initilization vector
+upausev	+ 0x0038 pause vector
+'source-id + 0x003c 
+blk		+ 0x0040 current block number
+scr		+ 0x0044 current screen number
+root-wordlist + 0x0048 root wordlist
+sorder	+ 0x004c search order array - 9 cells
+nextlist + 0x0070 next available wordlist - 9 cells
+current	+ 0x0094 current wordlist
+#task	+ 0x0098 number of running task
+handler	+ 0x009c exception handler vector
+'buffer + 0x00a0 Start of array of block buffers
+#buf	+ 0x00b4 number of defined block buffers
+(block@) + 0x00c4 block fetch buffer
+(block!) + 0x00c8 block store vector
+'sp		+ 0x00cc saved task stack ptr 
+urunv	+ 0x00d0 task run action vector
+hold	+ 0x010a hold buffer  
+pad		+ 0x012c 
+l0 		+ 0x01ac bottom of leave stack- grows upwards
+r0 		+ 0x0600	Top of Return Stack - grows down
+s0 		+ 0x0800	Top of Parameter Stack - grows down
+
+
+words-cr ( -- ) \ print words in current wordlist. one per line
+xfer ( -- ) \ copy input until ctrl-d to internal buffer then interpret.
+ixfer( addr -- ) \ load intel hex to address from input stream 
+ihex>  ( addr n -- )  \ dump n bytes as intel records from addr 
+ihex<   ( addr -- )  \ parse intel records from internal buffef to address
+disasm ( addr n --)  \ Disassemble n bytes starting at addr
+disassembler  ( -- ) \ disassembler vocabulary
+attached ( -- )   \ set input and output streams to serial port device
+stand-alone  ( -- ) \set input and output streams to vga and ps/2 keybd
+my-emit ( c --) \ send output to both serial and screen
+emit-console ( c --) \ send output to vga 
+putch ( row col ch -- )  \ draw character at (row,col) on vga 
+scroll ( -- )  \  shift vga screen upwards by one row
+lineto ( x y -- )   \ draw line from current cursor location to point (x,y) on vga
+line ( x1 y1 x2 y2 -- )  \ draw in current colour a line joining ( x1,y1) to (x2,y2) on vga
+lineh ( x y -- ) \ draw in current colour a horizontal line thru point (x,y) on vga
+linev ( x y -- ) \ draw in current colour a vertical line thru pint (x,y) on vga
+point ( x y -- )  \ draw pixel with current colour on vga
+gotoxy  ( x y -- ) \ set cursor coordinates variables on vga
+ynow ( -- addr) \ variable holding vga  cursor y coordinate
+xnow  ( -- addr) \ variable holding vga cursor x coordinate
+#cols ( -- n ) \ number character columns on vga
+#rows ( .. n ) \ number of charcter rows on vga
+clr ( -- ) \ clear vga ;  black background , white foreground 
+clear-screen ( -- ) \ fill vga with current background colour
+plot-point ( x y colour -- ) \ draw pixel with colour at location x,y on vga
+bg! ( index -- ) \ set background colour using colour table index
+fg!  ( index -- ) \ set foreground colour using colour table index
+colour! ( index -- ) \ internal colour varible using colour table index
+row# ( -- addr ) \ variable holding text cursor current row on vga
+col# ( -- addr ) \ variable holding text cursor current column on vga
+bg ( -- addr ) \ variable holding vga background colour
+fg ( -- addr ) \ variable holding vga foreground colour
+colour ( -- addr ) \ variable holding vga colour attribute
+ymax ( -- u ) \ vga screen y limit in pixels
+xmax ( -- u ) \ vga screen y limit in pixels 
+
+resize (  ) 
+free  ( addr -- ior ) \ release allocated memory to heap
+allocate ( size -- addr ior )   \ get a clock of memory from heap
+
+rtc-date  ( ---- sec min hr day mon yr )   \ get date and time from RTC
+bcd>bin ( c - n)
+nvram! ( val offset -- ) \ store byte in NVRAM
+nvram@ ( offset -- c)   \ read byte from NVRAM
+init-controller ( -- )  initialize gx1 and cc5530 graphics subsystem
+tom ( -- addr ) \ highest memory address available.
+set-sys-phase ( n -- )  
+timer                                                                           
+get-ms                                                                          
+delay                                                                           
+ms                                                                              
+udelay                                                                          
+ndelay                                                                          
+cpukhz#                                                                         
+label                                                                           
+code                                                                            
+assembler                                                                       
+rand                                                                            
+srand                                                                           
+hex.                                                                            
+dec.                                                                            
+oct.                                                                            
+bin.                                                                            
+#.                                                                              
+h#                                                                              
+d#                                                                              
+o#                                                                              
+b#                                                                              
+#:  ( n "<spaces>name" -- X: "<space>cccc" -- n)
+                                                                                                                                           
+round-up  ( u n  -- u1 )   align u to a multiple of n i.e u1 n mod = 0
+                                                                   
+bljoin                                                                          
+wljoin                                                                          
+bwjoin                                                                          
+lbsplit                                                                         
+lwsplit                                                                         
+wbsplit                                                                         
+low-word                                                                        
+low-byte                                                                        
+lfill  ( addr count wrd -- )    write count dwords at address addr
+wfill   ( addr count wrd -- )    write count words at address addr
+between ( n min max -- flg ) true if min <= n < max 
+bounds   ( addr len -- addr1 addr2 )  addr2 = addr1+len    
+lmove   ( src dest len -- ) \ move len cells from src to dest
+lmove<   ( src dest len -- ) \ move len cells from src to dest. src < dest.
+lmove>   ( src dest len -- ) \ move len cells from src to dest. src > dest.
+cell-  ( u -- u )  \ u2 = u1 - cell-size 
+
+\ vocabularies                                                                           
+diagnostic                                                                      
+console                                                                         
+graphics                                                                        
+memory                                                                          
+filesystem                                                                      
+system
+
+
+\ high level interrupts
+\  usage :  isr: <name> high-level forth words  isr;
+\           irq: <name> high-level forth words irq;
+isr-get  ( n -- xt )  \  get exception n handler 
+isr-set  ( xt n --  )   \ set exception n handler 
+irq-get  ( n -- xt )  \  get interrupt n  handler
+irq-set  ( xt n -- )  \  set interrupt n  handler
+irq-count  ( n -- u )  \ return count of irq n activations
+isr; ( --  )  \ end isr definition
+isr: ( "name " -- )  \ define exception service routine 
+irq; ( --  )  \  end irq definition
+irq: ( "name " --  )  \ define interrupt service routine 
+
+
+restart  ( -- ) \ reload system
+cold ( -- )  \ cold start Forth system
+io!  ( -- )  \ Initialize IO system  
+[else]  ( -- ) \ ignore input stream until [then] is seen
+[if]   ( flg -- )  \ if tos is true ignore input stream untl [then]
+[then]   ( --  )  \ resume scanning of input stream
+[undefined]  ( "<name>" -- flg )  \ set flag if <name> is undefined
+[defined]    ( "<name>" -- flg )  \ set flag if name is defined
+
+.rs   ( -- )  \ dump R-Stack contents
+.s    ( -- )  \ dump P-Stack contents
+dump  (addr n -- )  \ display n bytes of memory from addr
+words  ( -- )  \ list all words in dict.       
+
+.hex8   ( d --- )  \ print 32-bit value in hex format
+
+multi   ( -- )  \ start cooperative multitasker 
+single   ( -- )  \ stop cooperative multitasker 
+(run)   ( xt -- )  \ ????
+run    (  -- )  \ kill all running task  
+purge  (  -- )  \ kill all running task
+wake   ( task -- )  \ add task to chain
+stop   ( -- )  \ put current task to sleep
+sleep   ( task -- )  \  kill task unless terminal task
+awake?  ( task -- addr|0 )  \ address of prev link or 0
+task!   ( xt task -- )  \  initialize task
+task:   ( " <name>"  -- )  \  create a task
+user'   ( task a -- a' )  \  task user variables
+
+environment?  ( c-addr u -- false )  \ system query (not implemented)
+
+depth   ( -- +n )   \ number of items on stack
+move    ( addr1 addr2 u -- )  \ smart move
+within  ( x1 x2 x3 -- flag )  \ true if  x2<=x1<x3
+
+endcase  ( c: csys --   runtime: ( x -- ) )  \ terminate case block
+endof   ( c: csys1 ofsys -- csys2 )  \ terminate case condition
+of      ( c: -- ofsys  runtime: ( x1 x2 -- | x1 )  \ start case condition
+case   ( c: -- csys )  \ begin case condition
+
+leave   ( --  L: -- adrs )  \ exit do loop 
++loop  ( addrs --  L: 0 a1 a2 .. aN -- S: n -- ) \ add n to loop counter
+loop   ( adrs --  L: 0 a1 a2 .. aN -- )  \ do loop terminiator
+endloop ( adrs xt --  L: 0 a1 a2 .. aN -- ) \ common factor of LOOP and +LOOP
+?do  ( csys: -- adrs   L:  S: x1 x2 -- )  \  start loop if x2 > 0 
+do  ( csys:  -- adrs   L: -- 0 rsys x1 x2 -- ) \ start loop
+l>   (  -- x   L: x -- )  \ move from leave stack
+>l    ( x --   L: -- x )  \ move to leave stack
+repeat  ( csys: adrs2 adrs1 --  )  \ resolve WHILE loop
+while   ( csys: adrs1 -- adrs2 adrs1 )  \  branch for WHILE loop
+again   ( csys: adrs -- )  \ unconditonal backward branch
+until  ( csys: adrs --  )  \ conditional backward branch
+begin   ( csys:  -- adrs ) \ target for backward branch
+else    ( csys: addr1 -- addr2 )  \ branch for IF..ELSE
+then    ( addr -- )  \ resolve forward branch
+if   (  -- addr  )  \ conditional forward branch
+ahead   ( -- addr  )  \ forward branch target
+
+end-structure   ( addr n -- )   \ end structure definition
+begin-structure  ( " <spaces>name" -- addr 0 ; -- size )  \ define structure
+wfield:  ( -- )  \ add 2-byte field to structure
+cfield:   ( -- )  \ add 1 byte field to structure
+field:   ( -- )  \ add 1 cell field to structure
++field   ( n "<spaces>name" -- Exec: addr -- 'addr )  \ add n bytes to structure
+
+module   ( x1 x2 --  )  \ finalize action of internal and external
+external  ( -- a-addr )  \ current and new definitions are in dictionary
+internal   ( -- a-addr )  \ current and new definitions are hidden
+
+:noname  ( -- xt )  \ create unamed forth definition 
+postpone   ( -- )  \ postpone compile action of word
+[']   ( -- )  \  find word & compile as literal
+;   ( -- )  \ end colon definition 
+:   (  --  )  \ begin a colon definition
+immediate  ( --   )  \ make last def'n immediate
+reveal  ( -- )  \ "reveal" latest definition
+hide  (  --  )  \ "hide" latest definition
+]    ( --  )  \  enter compiling state
+[    ( -- )  \ enter interpretive state
+recurse  ( -- )  \ recurse current definition
+does>    ( csys : ; rsys :  -- addr )  \  change action of latest def'n
+create   ( -- )  \  create an empty definition
+
+rename-file  ( caddr1 u1 caddr2 u2 -- ior )  \ rename a file
+flush-file  ( fileid -- ior )  \ write file buffers to storage
+write-line  ( caddr u1 fileid -- ior )  \ write u1 bytes to a file
+read-line  ( caddr u1 fileid -- u2 flag ior )  \ read u1 bytes from a file, u2 is actual read
+close-file  ( fileid -- ior )  \ close a file
+write-file  ( caddr u1 fileid -- ior )  \ write u1 bytes to file
+read-file   ( caddr u1 fileid -- u2 ior )  \ read up to u1 bytes form file 
+file-size  ( fileid -- ud ior )  \ size of file
+reposition-file  ( ud fileid -- ior ) \ set file pointer location
+file-position  ( fileid -- ud ior )  \ fetch file pointer location
+delete-file  ( caddr u -- ior )  \ delete a file
+open-file  ( caddr u fam -- fileid ior )  \ open a file
+create-file  ( caddr u fam -- fileid ior )  \ create a file
+bin   ( fam -- fam  )  \ set file access mode to binary
+r/w    ( -- fam )  \ read write file access mode
+w/o   ( -- fam )  \ write only file access mode
+r/o   ( -- fam )  \ read only file access mode
+
+blockdev!  ( addr u  --  )  \ store buffer a addr to disk block u
+blockdev@  ( addr u -- )  \ fetch disk block u to memory addr
+list   ( u -- )  \ dump the contents of block u to screen
+thru    ( i*x u1 u2 -- j*x )  \ load blocks from u1 to u2
+load   ( i*x u -- j*x )  \ interpret form block u     
+block ( u -- addr )  \ read blk# u from device and place in buffer
+buffer  ( u -- addr )  \ find buffer for block u
+flush  ( -- )  \ write to disk then clear block buffers 
+save-buffers  ( -- )  \ Write buffers to disk 
+update   ( -- )  \  mark current buffer as dirty 
+findbuf ( u -- addr flag )  \ Find buffer for blk# u flag TRUE if loaded
+blocks? ( -- )  \  throw an exception if no buffer blocks defined
+savebuf   ( n --  )  \ Save block in buffer n if necessary
+block-seek   ( u -- fileid )  \ seek to a block. mapped files only
+block-map  ( u -- u )   \ convert block number to mapped block number
+mapped?   ( u -- flag )  \ block is mapped to file
+unmap ( n -- )  \ unmap file from range of blocks       
+map  ( caddr u n -- )  \ map range of blocks to a file 0-3
+blks  ( n -- )   \  initialize n block buffers
+empty-buffers ( -- )  \ clear file buffers. no flush to disk
+
+is   ( xt "<spaces>name" -- )  \ set a deferred word
+to   ( x "<spaces>name" -- )  \ set a value
+value  ( x "<spaces>name" -- )  \ create value
+defer ( "name" -- )  \ define a deferred word
+action-of                                                                       
+defer!   ( xt2 xt1 -- )  \ set action of a defered word
+defer@    ( xt1 -- xt2 )  \ get action of a defered word
+
+\   ( -- )  \ ignore line
+(    ( -- )  \ skip input until )
+
+[char]   ( -- )  \ compile character literal  
+char   ( -- char )  \  parse ASCII character
+'    ("<name>" -- xt )  \ find word in dictionary
+abort"   ( i*x 0  -- i*x; R: j*x -- j*x )  \ if x1=0
+// C          ( i*x x1 --    ; R: j*x --   )  \ if x1<>0
+?abort   ( f c-addr u --  )  \ abort & print msg
+abort  ( i*x -- ; R: j*x -- )  \ 
+quit   ( -- ;r: i*x -- )  \  outer interpreter
+evaluate  ( i*x c-addr u -- j*x )  \ interprt string
+
+refill  (  -- f )  \ fill input buffer from input source 
+nest-input   ( xt caddr u id blk -- )  \  ??
+restore-input  ( x1...xn n -- flag )  \ restore input stream context  
+save-input  ( -- x1...xn n )  \ put input stream context on P-Stack
+include  ( i*x caddr u -- j*x  )  \ interpret from file
+included                                                                        
+include-file( i*x fid -- j*x )   \ interpret from file
+interpret  ( i*x -- j*x )  \ interpret given buffer   
+?number  ( c-addr -- n t | c-addr f| c-addr 0 )  \ string->number; false on error 0 on conversion error
+>number  ( ud adr u -- ud' adr' u' )  \ convert string to number
+?sign ( adr n -- adr' n' f )  \  get optional sign
+digit? ( c -- n -1 )  \ if c is a valid digit
+literal ( x --  )  \ append numeric literal
+find ( c-addr -- c-addr 0|xt 1|xt -1 )  \ search dictionary, not found|imm'e|normal
+immed?    ( nfa -- f  )  \ fetch immediate flag
+cfa>nfa   ( cfa  -- nfa )  \ code field to name field
+nfa>cfa  ( nfa -- cfa )  \ name field to code field
+nfa>lfa   ( nfa -- lfa )  \ name adr -> link field
+
+parse-name  ( " ccccc " -- c-addr u )  \ parse name delim'd by space
+parse   ( char -- c-addr n )  \  parse delimited by char
+word     ( char -- c-addr  )  \ word delimited by char in input stream
+>counted   ( src n dst --  )  \  copy to counted str
+-trailing ( caddr u1 -- caddr u2 )  \ remove trailing blanks  
+sliteral  ( csys: caddr u -- ; rsys: -- caddr u )  \ compile string
+search  ( c-addr1 u1 c-addr2 u2 -- c-addr u flg )  \ locate s2 in s1
+compare ( c-addr u1 c-addr u2  -- -1|0|1 )
+/string  ( addr u n -- addr+n u-n )  \ trim string
+source-id   ( -- addr )  \ input source
+source   (  -- addr n )  \ current input buffer   
+throw   ( k*x n -- k*x | i*x n )  \  raise an exception
+catch ( i*x xt -- j*x 0 | i*x n )  \ try to execute xt  
+
+bittest   ( n add -- flag )  \ status of bit n in bit array at addr
+bitclear  ( n addr -- )  \ clear bit n in bit array at addr       
+bitset ( n addr  -- )  \ set bit n in bit array at addr    
+
+buffer: ( -- a-addr )  \ allocate buffer
+blank ( addr u -- )  \
+erase  ( addr u -- )  \ starting at addr fill u memory location with 0
+
+forth ( --  )  \ make forth-wordlist the first in search order  
+vocabulary   ( "<spaces>name" -- )  \ create new vocabulary
+search-wordlist   ( caddr u wid -- 0 | xt 1 | xt -1 ) \ search for definition in wordlist
+order  ( -- )  \ display search order and compilation wid
+wid>name  ( wid -- addr len)
+previous ( -- )  \ remove first in search order list
+also  ( --  )  \ duplicate first list in search order
+only  ( -- )  \ set minimum search order
+set-order   ( widn...wid1 n -- )  \ set search order
+get-order   ( -- widn...wid1 n )  \ get search order
+definitions  ( -- )  \ set current to first in search order
+wordlist  ( -- wid )  \ get new wordlist
+set-current  ( wid -- )  \ set compilation wordlist            
+get-current ( -- wid )  \ get compilation wordlist
+
+c,   ( char -- )  \ append char to dict
+w,  ( word -- )  \ append word to dict   
+,  ( x -- )  \ append cell to dict      
+allot  ( n -- )  \ allocate n bytes in dict
+here  ( -- addr )  \ returns dictionary ptr
+hex  ( -- )  \ set number base to hex
+decimal ( -- )  \ set number base to decimal
+octal   ( -- )  \ set number base to octal   
+binary  ( -- )  \ set number base to binary 
+d.r   ( d n -- )  \ print d in field n long
+.r   ( n1 n2 -- )  \ print n1 right aligned in a field n2 long
+ud.r  ( ud n -- )  \ print u in field n long
+u.r  ( u n -- )  \ print u in field n long
+d. ( d -- )  \ display n signed
+.   ( n --  )  \ display n signed
+ud.  ( ud -- )  \ display unsigned double  
+u.   ( u -- )  \  display u unsigned
+sign  ( n -- )  \ add minus sign to HOLD buffer if n<0   
+#> ( ud1 -- c-addr u )  \ end conv., get string
+#s  ( ud1 -- ud2 )  \ convert remaining digits
+# ( ud1 -- ud2 )  \ convert 1 digit of output
+>digit ( n -- c )  \ convert to 0..9a..z
+<#   ( -- )  \ begin numeric conversion
+holds   ( addr u -- )  \ add string to HOLD buffer output string
+hold  ( char -- )  \ add char to HOLD buffer output string
+ud*  ( ud1 u2 -- ud3 )  \  unsigned 2-cell by 1-cell to 2-cell multiply.
+ud/mod  ( ud1 u2 -- u3 ud4 )  \ unsigned 2-cell by 1-cell divide. 2-cell quotient , 1-cell remainder   
+.(   ( -- )  \  display comments upto enclosing )
+."  ( -- )  \ compile string to print     
+c"  (  -- addr u )  \ get in-line string   
+s" ( -- addr u)  \ get in-line string. uses a single buffer  
+ztype ( z-addr -- )  \ type zer0 terminated string to terminal
+type  ( c-addr +n -- )  \ type line to terminal
+accept  ( c-addr +n -- +n' )  \ get line from terminal max of n char
+umax  ( u1 u2 -- u )  \ unsigned maximum of u1 and u2
+umin  ( u1 u2 -- u )  \  unsigned minimum of u1 an u2 
+spaces  ( n -- )  \ output n spaces
+space   ( -- )  \ output a space
+cr     ( -- )  \ output a newline
+count  ( c-addr1 -- c-addr2 u ) \  address and length of counted string
+b#   ( <space>cccc  -- x )  \ parse next word as a binary number
+o#  ( <space>cccc  -- x )  \ parse next word a an octal number
+d# ( <space>cccc  -- x )  \ parse next word as a decimal number
+h#  ( <space>cccc  -- x )  \ parse next word as a hexadecimal number
+
+2to   ( x x "<spaces>name" -- )  \ set a 2-cell value    
+2literal  ( x x -- )  \ append 2-cell numeric literal     
+2value    ( x1 x2 "<spaces>name"-- )  \ create 2-cell value
+2constant  ( x1 x2 "<spaces>name"-- )  \ define a 2-cell constant
+2variable  ( "<spaces>name"-- )  \ define a 2-cell variable
+2rot   ( x1 x2 x3 x4 x5 x6 -- x3 x4 x5 x6 x1 x2 )  \ as per stack diagram
+2over   ( x1 x2 x3 x4 -- x1 x2 x3 x4 x1 x2 )  \ as per stack diagram
+2swap  ( x1 x2 x3 x4 -- x3 x4 x1 x2 )  \ as per stack diagram
+min  ( n1 n2 -- n3 )  \ signed minimum     
+max ( n1 n2 -- n3 )  \ signed maximum
+*/  ( n1 n2 n3 -- n4 )  \ n1*n2/n3
+*/mod ( n1 n2 n3 -- n4 n5 )  \  n1*n2/n3, rem quot
+mod   mod  ( n1 n2 -- n3 )  \ signed remainder
+/   ( n1 n2 -- n3 )  \  signed divide
+/mod  ( n1 n2 -- n3 n4 )  \ signed divide with remainder
+*   ( n1 n2 -- n3 )  \ signed multiply
+fm/mod    d1 n1 -- n2 n3   floored signed div'n
+m*  ( n1 n2 -- d )  \ signed 32*32->64 multiply
+d2/   ( d1 -- d2 )  \ double arithemtical shift left
+d2*   ( d1 -- d2 )  \ double arithemtical shift left 
+du<   ( ud1 ud2  -- flg )  \ unsigned double less than
+d<>  ( d1 d2  -- flg )  \ double test for not-equal 
+d=   ( d1 d2 -- flg )  \  double test for equality
+d0=   ( d1 -- flg )  \ double zero equal
+dmin   ( xd1 xd2 -- )  \ double minimum      
+dmax   ( xd1 xd2 -- )  \ double maximum       
+d<    ( d1 d2 -- flg )  \ double less than     
+d0<    ( d1 -- flg )  \ double less than zero   
+d-     ( d1 d2 -- d1-d2 )  \  double subtraction 
+dabs  ( d1 -- +d2 )  \ absolute value dbl.prec.
+?dnegate  ( d1 n -- d2 )  \ negate d1 if n negative
+dnegate  ( d1 -- d2 )  \ negate double precision
+abs    ( n1 -- +n2 )  \  absolute value
+?negate  ( n1 n2 -- n3 )  \  negate n1 if n2 negative
+u>d   ( u -- d )  \ convert unsigned to a double
+d>s   ( d -- n )  \ convert double to single
+s>d   ( n -- d )  \ convert single to a double
+#init ( -- n )  \ #bytes of user area init data
+uinit  ( -- addr )  \ initial values for user area
+s0    ( -- a-addr )  \ top of Parameter stack 128 cells:grows down
+r0   ( -- a-addr )  \ top of Return stack   128 cells:grows down
+l0  ( -- a-addr )  \ bottom of Leave stack:grows up
+pad                                                                             
+urun  ( -- addr )  \ variable holding task run action vector
+'sp        ( -- addr )  \ task saved stack point area
+(block!)    ( -- )  \  disk block fetch vector
+(block@)   block fetch vector
+#bufs   ( -- u )  \ number of defined block buffers
+'buffer   ( -- addr )  \ ????
+current   ( -- a-addr )  \ current wid
+nextlist  ( -- a-addr )  \ next available wid 9 cells
+sorder ( -- a-addr )  \ search-order specification 9 cells
+root-wordlist  ( -- wid )  \ FORTH wordlist id
+scr  ( -- a-addr )  \ user variable for current screen
+blk  ( -- a-addr )  \ user variable for current block number
+'source-id  ( -- a-addr )  \ user variable for ??
+upausev  ( -- a-addr )  \ user variable for pause vector                                                                       
+ioinitv   ( -- a-addr )  \ user variable for IO initialzation vector
+key?v  ( -- a-addr )  \ user variable for KEY? vector
+keyv   ( -- a-addr )  \ variable holding KEY vector
+emitv  ( --- a-addr )  \ variable holding EMIT operator
+lp   ( -- a-addr )  \ Leave-stack pointer
+hp    ( -- a-addr  )  \ HOLD pointer
+latest   ( -- a-addr )  \  last word in dictionary
+'source  ( -- a-addr )  \ two cells: len, adrs
+dp    ( -- a-addr )  \ holds dictionary ptr
+state  ( -- a-addr )  \ holds compiler state
+base  ( -- a-addr )  \ holds conversion radix
+>in  ( -- a-addr )  \ holds offset into TIB
+u0    ( -- a-addr )  \ current user area adrs                                                                           
+tib  ( -- a-addr )  \ Terminal Input Buffer. above user area
+//   HEX -80 USER tib  
+'irq-vectors   ( -- a-addr )  \ array of interrupt handlers
+'irq-count    ( -- a-addr )  \ array of interrupt counters
+forth-wordlist   ( -- wid  )  \ FORTH wordlist id
+tibsize   ( -- n )  \ size of TIB
+handler  ( -- addr )  \ catch-throw exception handler vector
+#task  ( -- u )  \  count of defined tasks
+runv   ( -- addr )  \ system  task run vector
+pausev  ( -- addr )  \ system task  pause vector
+term   ( -- addr )  \ console task user area
+#task-size  (  -- 3072  )  size of task user area
+//    1023 bytes available between 2049 - 3072
+false  ( -- 0  ) \  false flag
+true  ( -- -1 )  \ true flag
+rdtsc  ( -- d )  \ cpu instruction counter
+compile,  ( xt -- )  \ append execution token
+>body  ( xt -- a-addr  )  \ address of PARAMETER FIELD
+chars ( n1 -- n2 )  \ chars->address units
+char+  ( c-addr1 -- c-addr2 )  \   add char size
+cells  ( n1 -- n2 )  \ cells->address units
+cell+    ( a-addr1 -- a-addr2 )  \  add cell size
+cell        ( -- n )  \ size of one cell in bytes ( addressable units)
+aligned-pg   ( addr -- a-addr )  \ align on page boundary ( 4KB )
+aligned-qw  ( addr -- a-addr )  \ align on qword address boundary
+aligned-dw  ( addr -- a-addr )  \ align on dword address boundary    
+aligned-w   ( addr -- a-addr )  \ align on word address boundary
+(aligned)  ( addr n -- a-addr )  \ align address on n byte boundary 
+aligned    ( addr -- a-addr )  \ align given addr does nothing
+align    ( -- )  \ align HERE. does nothing
+s=  ( c-addr1 c-addr2 u -- -n|0|+n ) \ string compare
+//             n<0: s1<s2, n=0: s1=s2, n>0: s1>s2
+scan   ( c-addr u c -- c-addr' u' )   \ find matching char
+skip   ( c-addr u c -- c-addr' u' )   \  skip matching chars
+cmove> ( c-addr1 c-addr2 u --  )   \ move from top
+cmove  ( c-addr1 c-addr2 u -- )     \ move from bottom
+fill   ( c-addr u char -- )    \  u >0 fill memory with char
+sm/rem   ( d u1 -- u2 u3  )   \ signed 64/32->32
+um/mod   ( ud u1 -- u2 u3 )   \ unsigned 64/32->32
+um*   ( u1 u2 -- ud )    \ unsigned 32x32->64 mult.
+unloop   ( --   R: sys1 sys2 -- )   \ drop loop parms
+j   ( -- n   R: 4*sys -- 4*sys )  \ get the second loop index
+i  ( -- n   R: sys1 sys2 -- sys1 sys2 )  \ get the innermost loop index
+u>  ( u1 u2 -- flag  )   \  unsigned  grater than (not ANSI)
+u<  ( u1 u2 -- flag )   \  unsigned  less than 
+>   ( n1 n2 -- flag )   \ signed  greater than
+<   ( n1 n2 -- flag  )   \  signed less than   
+<>  ( x1 x2 -- flag )  \ not equal  (not ANSI)
+=   ( x1 x2 -- flag )   \ true if x1=x2
+0>  ( x -- flag  )    \ true if TOS negative
+0<  ( x -- flag  )   \ true if TOS negative
+0<> ( x  -- flag )    \ return true if TOS !=0
+0=  ( x -- flag )    \ return true if TOS=0
++!  ( x a-addr -- )     \ add cell to memory
+arshift  ( x1 u -- x2 )    \ arithmetic right shift u places
+rshift ( x1 u -- x2 )   \ logical right shift u places 
+lshift ( x1 u -- x2 )  \ logical L shift u places
+2/  ( x1 -- x2 )    \ arithmetic right shift
+2*  ( x1 -- x2 )    \ arithmetic left shift
+1-  ( x1 -- x2 )   \ subtract 1 from TOS
+1+  ( x1 -- x2 )     \ add 1 to TOS
+negate  ( x1 -- x2 )     \ two's complement
+invert  ( x1 -- x2 )     \ bitwise inversion
+xor ( x1 x2 -- x3  )   \ logical xor
+or  ( x1 x2 -- x3 )    \ logical or
+and ( x1 x2 -- x3 )    \ logical and
+-   ( x1 x2 -- x3 )     \ subtract; x1-x2
+d+  ( xd1 xd2 -- xd3 )      \ add two doubles
+m+  ( xd1 x -- xd2 )    \ add single to  double
++   ( x1 x2 -- x3 )    \  add; x1+x2
+pc@ ( c-addr -- char )    \ input char from port
+pw@ ( c-addr -- word )    \ input WORD from port 
+p@  ( c-addr -- ud )     \ input DWORD from port
+pc! ( char c-addr --  )    \ output char to port
+pw! ( word c-addr -- )       \ output WORD to port
+p!  ( ud c-addr -- )   \  output DWORD to port
+c@+ ( c-addr -- c-addr+1 c )  \ char address operator fetch and increment 
+w@+ ( w-addr -- w-addr+1 w )  \ word address operator fetch and increment 
+@+  ( addr -- addr+1 u )  \ address operator fetch and increment
+c@  ( c-addr -- char )    \ fetch char from memory
+w@  ( a-addr -- x )       \ fetch cell from memory
+@   ( a-addr -- x )       \ fetch cell from memory
+c!+ ( c-addr n -- c-addr+1 )    \ address operator store and increment  
+w!+ ( w-addr n -- w-addr+1 )   \ address operator store and increment  
+!+ ( addr u -- addr+1 )   \ address operator store and increment
+c! ( char c-addr --  )   \  store char in memory
+w! (  word c-addr -- )    \ store word in memory
+!  ( x a-addr --  )    \ store cell in memory
+2>r  ( x1 x2 --   R: -- x1 x2 )  \ push 2 cells onto R-Stack
+2r>  ( -- x1 x2    R: x1 x2 -- )    \ pop 2 cells from R-Stack
+2r@  ( -- x1 x2   R: x1 x2 -- x1 x2 )    \ fetch 2 cells from R-stack
+2dup ( x1 x2 -- x1 x2 x1 x2 )    \ dup top 2 cells
+2drop  ( x1 x2 --   )      \   drop 2 cells
+2! ( x1 x2 a-addr --  )    \  store 2 cells  
+2@ ( a-addr -- x1 x2 )    \ fetch 2 cells
+
+tuck ( x1 x2 -- x2 x1 x2 )    \ per stack diagram
+up! ( addr -- )      \ set User Area pointer
+up@ ( -- addr )      \ get User Area pointer
+rp! ( a-addr -- )    \ set R-Stack pointer
+rp@ ( -- a-addr )    \ get R-Stack pointer 
+sp! ( a-addr --  )    \ set P-Stack pointer
+sp@ ( -- a-addr )     \  get P-Stack pointer
+r@  ( -- x     R: x -- x )  \ fetch from R-Stack
+r>  ( -- x    R: x -- )    \  pop from R-Stack
+>r  ( x --   R: -- x )   \ push to R-Stack
+pick ( xn xn-1.. x0 n --- xn..x0 x1 )  \ per stack diagram 
+nip  ( x1 x2 -- x2  )      \ per stack diagram
+-rot ( x1 x2 x3 -- x3 x1 x2 ) \ per stack diagram
+rot  ( x1 x2 x3 -- x2 x3 x1 ) \ per stack diagram
+over ( x1 x2 -- x1 x2 x1 )  \ per stack diagram
+swap ( x1 x2 -- x2 x1 )  \ swap top two items
+drop ( x -- )   \ drop top of stack
+?dup ( x1 -- 0 | x1 x1 )  \ dup if nonzero
+dup  ( x1 -- x1 x1 )    \ duplicate cell
+user ( n --  )   \ define user variable "n"   
+constant   ( -- )      \  define a Forth constant
+variable   ( -- )    \ define a Forth VARIABLE
+execute   ( i*x xt -- j*x ) \ execute Forth word at xt
+lit  ( -- x )  \ fetch inline literal to stack
+exit ( -- )    \ exit a colon definition
+(pause)  ( -- )   \ low level switch task
+(null)   ( -- )  \ does nothing
+pause ( --  )
+bye                                                                             
+key-con? ( -- f )  \ return true if char waiting 
+key-con  ( -- c )  \ input character from console
+emit-con ( c -- )  \ output character to console
+key-sio? ( -- f )  \ return true if char waiting at serial port
+key-sio  ( -- c  )  \ get character from serial port
+emit-sio ( c -- )  \ output character to  serial port
+ioinit  ( --  )  \ initialize vectored IO
+key  ( -- c )  \ read character from input device
+key? ( -- flag)  \ return true if character available
+emit ( c -- )  \ output character to  output device 
+(key? ( -- f )  \ return true if character available no pause
+(key  ( -- c  )  \ read character from input device no pause 
+(emit ( c --  )  \ output character to  output device no pause
+
+\ gx1 CPU specific words 
+]unlock ( -- R: flag -- ) \ restore interrupt flag state before lock[
+lock[   ( -- R: -- flag )  \ turn off interrupts till ]unlock
+cli?  ( -- flag )  \ query interrupts flag
+cli ( --  )  \ disable interrupts
+sti ( --  )  \ enable interrupts
+ss@ ( -- sel )  \ fetch stack segment selector
+gs@ ( -- sel )  \ fetch general segment selector
+fs@ ( -- sel )  \ fetch far segment selector
+es@ ( -- sel )  \ fetch extra segment selector
+ds@ ( -- sel )  \ fetch data segment selector
+cs@ ( -- sel )  \ fetch code segment selector
+tr7! ( u -- )  \ set test register 7 contents
+tr6! ( u -- )  \ set test register 6 contents
+tr5! ( u -- )  \ set test register 5 contents
+tr4! ( u -- )  \ set test register 4 contents
+tr3! ( u -- )  \ set test register 3 contents 
+tr7@ ( -- n )  \ fetch test register 7 contents
+tr6@ ( -- n )  \ fetch test register 6 contents
+tr5@ ( -- n )  \ fetch test register 5 contents 
+tr4@ ( -- n )  \ fetch test register 4 contents 
+tr3@ ( -- n )  \ fetch test register 3 contents
+dr7! ( u -- )  \ set debug register 7 contents 
+dr6! ( u -- )  \ set debug register 6 contents 
+dr3! ( u -- )  \ set debug register 3 contents 
+dr2! ( u -- )  \ set debug register 2 contents 
+dr1! ( u -- )  \ set debug register 1 contents 
+dr0! ( u -- )  \ set debug register 0 contents 
+dr7@ ( -- n )  \ fetch debug register 7 contents
+dr6@ ( -- n )  \ fetch debug register 6 contents
+dr3@ ( -- n )  \ fetch debug register 3 contents
+dr2@ ( -- n )  \ fetch debug register 2 contents
+dr1@ ( -- n )  \ fetch debug register 1 contents
+dr0@ ( -- n )  \ fetch debug register 0 contents
+cr4! ( u -- )  \ store control register 4
+cr3! ( u -- )  \ store control register 3
+cr2! ( u -- )  \ store control register 2
+cr0! ( u -- )  \ store control register 0
+cr4@ ( -- n )  \ get control register 4
+cr3@ ( -- n )  \ get control register 3
+cr2@ ( -- n )  \ get control register 2 
+cr0@ ( -- n )  \ get control register 0
+ldtr! ( ldt -- )  \ set local descriptor
+ldtr@ ( -- ldt )  \ get local descriptor
+tr! ( -- tr ) \set test register contents 
+tr@ ( -- u ) \ get test register contents  
+gdtr! ( base limit -- )  \ set global descriptor
+gdtr@ ( -- base limit )  \ get global descriptor
+idtr! ( base limit -- )  \ set interrupt descriptor ( does nothing!)
+idtr@ ( -- base limit )  \ get interrupt descriptor 
+
+
+
+Graphics word list
+3drop                                                                           
+3dup                                                                            
+4dup                                                                            
+or!                                                                             
+off                                                                             
+
+\ keyboard 
+key-keybd ( -- ch ) 
+key-keybd? ( -- flg )
+keyboard-init  ( -- )  \ initialize keyboard
+
+
+\ IDE disk
+boot-ide ( bool -- n | ) \ disk startup/initialization
+
+init-ideoff ( -- ) 
+\ read fdisk label, find our partition and set ide-offset to
+\  make this the start of our blocks.  if can't find partition, clear
+\  ide-offset to make "block" see the whole raw disk.
+partok?   ( a -- ? ) \ tell if magic # is ok for partition sector
+
+part.size
+part>start
+part>type 
+sec>parts
+pt_forthos ( -- 158 ) \ partition type for forthos storage
+
+nfdisk   \ # of fdisk entries in sector 0 of a disk
+
+ide-rdwt   ( a blk rw -- err ) \ get block pointer, doing i/o if needed
+\ rw=0 means write, anyother is read
+
+ide-io ( a blk rw -- )
+wait-busy
+wait-drq
+repoutsw   ( a port count -- )                                                                     
+repinsw                                                                         
+idedrq                                                                          
+ide-busy                                                                        
+ide-stat-check                                                                  
+idecmd-identify                                                                 
+idecmd-set-drive-parms                                                          
+idecmd-diag                                                                     
+idecmd-seek                                                                     
+idecmd-format                                                                   
+idecmd-verify                                                                   
+idecmd-write                                                                    
+idecmd-read                                                                     
+idecmd-calibrate                                                                
+ide_mode                                                                        
+ides_busy                                                                       
+ides_drq                                                                        
+ides_ecc                                                                        
+ides_error                                                                      
+ide_cmd                                                                         
+ide-status                                                                      
+ide_sdh                                                                         
+ide_cyl1                                                                        
+ide_cyl0                                                                        
+ide_snum                                                                        
+ide_scnt                                                                        
+ide_error                                                                       
+ide_data                                                                        
+ide-ctlr                                                                        
+ide-base                                                                        
+ide-offset                                                                      
+ide-unit                                                                        
+secs/blk ( -- 2 )  \ number of sectors per block
+#sec-words ( -- 256 )  \ number of words per sector
+#sec-size  ( -- 512 ) \ length of a sector in bytes
+#blk-size  ( -- 1024 )  \ len of a BLOCK  in bytes
+(rdwt)
+
+\ DOC 
+doc-init   \ initialze millenium chip on tc7010
+doc-block! ( buffer blk# -- ior )
+doc-block@ ( buffer blk# -- ior )
+doc-erase-block ( blk# -- )
+doc-page!  ( buffer pg# -- )
+doc-page@ ( buf pg# -- ior ) \ read 512 byte page 
+doc-extra@ ( buf u blk# -- ) \ read u bytes from first page block to get signature
+.mfr ( n --) \ print manufacturer
+.id ( n --) \ print chip id
+doc-oob!  ( addr pg# -- ) \ FIXME
+doc-oob@  ( addr pg#--  )
+doc-probe   ( win -- chipid )  \ initialize millenium chip
+doc-id-chip ( chip floor -- mfr id ) 
+doc-verify-buf ( addr u -- flg)  \ compare buffer with current DoC page 
+doc-do-write  ( -- ior ) \ start flash programming 
+doc-@buffer ( addr u -- )
+doc-!ecc  ( addr -- )  
+doc-!syndrome ( addr -- )
+doc-@syndrome ( addr -- )
+doc-!buffer  ( addr u -- )   \ write buffer to DoC
+
+ 
+\ Graphics display 
+at-row-col  ( row col -- )     \ move cursor to row col
+col#-incr  ( -- ) \ next column
+row#-incr   ( -- ) \ next row
+clear-row  ( row -- )  \ set current row to background color
+row-addr   ( row -- fba) \ address of start of current row in framebuffer 
+row-col-addr   ( row col -- fba ) \ address of current char in framebuffer
+char-reverse ( x y -- )  \ invert char background   
+draw-char  ( x y c -- )   \ paint char at pixel x y
+position  ( row col --  x y) \ char row col to pixel xy mapping 
+chmap-pixels  ( bm -- ) \ expand character bitmaps into chmap
+char-glyph  ( ch -- a) 
+char-map@   ( -- ch )  \ fetch charater form character mapping table
+chmap                                                                           
+draw-blt ( x y dx dy w h -- ) \                            
+draw-rect ( x y w h -- ) \ draw a rectangle width w height h at (x,y) 
+draw-fill ( x y w h -- ) \ draw a filled rectangle width w height h at (x,y) 
+draw-line ( x1 y2 x2 y2 -- ) \ draw line between (x1,y1) and (x2,y2)
+vect-mode-flag  \ internal
+pixelxy ( x y -- addr ) \ framebuffer address of pixel at (x,y)
+colours565# ( -- addr ) table of 16 predefined colour attributes
+rgb>565 ( r g b -- w) convert Red Green Blue to colour attribute
+font8x16 ( -- addr )  \ table of 8x16 font bitmap
+/font-size  ( -- n )  \ value holding size in bits of glyph
+/font-width ( -- n )  \ value holding width in bits of glyph
+/font-height( -- n )  \ value holding height in bits of glyph
+/font-glyphs  ( -- n )  \ value holding number of glyphs in map
+init-gaccel ( -- ) \ initialize graphics acceleration
+gx1-ge-bresenham-line  ( x y len initerr axialerr diagerr flags) 
+\ draw a vector using the specified Bresenham parameters.
+
+gx1-ge-text-blt ( dstx dsty width height data)
+                                                                
+gx1-ge-mono-bitmap-to-screen-blt ( srcx srcy dstx dsty width height *data pitch)
+\ transfers monochrome bitmap data to the screen 
+gx1-ge-color-bitmap-to-screen-xblt  ( srcx srcy dstx dsty width height *data pitch color) 
+\ transfers color bitmap data to the screen with transparency.
+gx1-ge-color-bitmap-to-screen-blt ( srcx srcy dstx dsty width height *data pitch)
+\ transfers color bitmap data to the screen.  For most cases, (bitmap-to-screen-blt)
+gx1-ge-screen_to_screen_xblt ( srcx srcy dstx dsty width height color)
+\ perform a screen to screen BLT when a specified color should by transparent.
+                                                    
+gx1-ge-screen-to-screen-blt ( srcx srcy dstx dsty width height --)
+\ screen to screen BLT when the ROP does not require destination data.                                                     
+(blt-rectangle)                                                                 
+gx1-ge-color-pattern-fill  ( x y width height pattern) 
+\  render a rectangle using the current raster operation and the specified color pattern.
+                                                      
+gx1-ge-pattern-fill ( x y width height)                                         \ fill a rectangular region with pattern loaded using one of pattern routines.
+\ The raster operation must be specified.
+                   
+(gx1-ge-solid-fill)                                                             
+gx1-ge-raster-operation! ( rop -- ) \ set raster operation pattern flags
+                                                       
+gx1-ge-color-pattern-line!  ( y pattern[] )  \ load a single line of a 8x8 color pattern.                                                    
+gx1-ge-color-pattern! ( bg fg data0 data1 data2 data3 transparent) \ specify a color pattern.                                                           
+gx1-ge-mono-pattern! ( bg fg data0 data1 transparent ) \ specify a monochrome pattern.
+                                                           
+gx1-ge-solid-pattern!  ( color -- ) 
+\  specify a solid pattern colour.
+\  called before FILLs or BLTs that use a solid pattern color. 
+\  gfx-ge-raster-operation! should always be called after
+                                                         
+gx1-ge-mono-source!( bg fg tr -- )                                              \ specify the monochrome source colour.  
+\ must be called *after* loading any pattern data
+                
+gx1-ge-solid-source! ( color --) \ specify a solid source colour.                                                           
+gx1-ge-8bpp                                                                     
+gx1-ge-bpp  ( -- )   \ set the bpp value in the graphics engine and initialize GFXbufferWidthPixels
+                                                                  
+gx1-ge-scratch-str! ( array offset len -- )
+write multiple bytes to buffer specified in gx1-ge-scratch-base
+                                                            
+gx1-ge-scratch! ( u bbxbase --)
+gx1-ge-scratch-base! ( u -- )
+gx1-ge-pat-data3!
+gx1-ge-pat-data2!
+gx1-ge-pat-data1!
+gx1-ge-pat-data0!
+gx1-ge-pat-color3!
+gx1-ge-pat-color2!
+gx1-ge-pat-color1!
+gx1-ge-pat-color0!
+gx1-ge-src-color1!
+gx1-ge-src-color0!                                                              
+gx1-ge-src-y!                                                                   
+gx1-ge-src-x!                                                                   
+gx1-ge-height!                                                                  
+gx1-ge-width!                                                                   
+gx1-ge-dst-y!                                                                   
+gx1-ge-dst-x!                                                                   
+gx1-ge-blt!                                                                     
+gx1-ge-vect!                                                                    
+gx1-ge-rop!                                                                     
+gx1-ge-wait-until-idle                                                          
+gx1-ge-wait-pipeline                                                            
+gx1-ge-wait-busy                                                                
+gx1-ge-wait-pending                                                             
+gx1-ge-blt-pending?                                                             
+gx1-ge-scratch-base                                                             
+gx1-ge-offset                                                                   
+gx1-ge-bpp-shift                                                                
+gx1-ge-temp-height                                                              
+gx1-ge-blt-mode                                                                 
+gx1-ge-buffer-width                                                             
+gx1-ge-section                                                                  
+GFXusesDstData                                                                  
+GFXsavedRop                                                                     
+GFXsavedColor                                                                   
+GFXsourceFlags                                                                  
+GFXpatternFlags                                                                 
+GFXbufferWidthPixels                                                            
+GFXbb1Base   \ address of blt buffer 1                                                       
+GFXbb0Base   \ address of blt buffer 0
+set-graphic-mode ( mode -- )  \ mode = 0|1..5  0=640x480@16, 5 is 1280x1024@8
+mode1280x1024@8  ( -- )  \ set graphics mode 
+mode1280x1024@16 ( -- )
+mode1280x960@16  ( -- )
+mode1024x768@16  ( -- )
+mode800x600@16   ( -- )
+mode640x480@16   ( -- )
+                                                               
+(vsync-fp!)  ( start end -- )    \ Panel horizontal sync
+(vsync!)   ( start end -- )       \ horizontal sync
+(vblank!)  ( start end -- )      \ horizontal timing
+(vtiming!) ( vactive vtotal -- ) \ horizontal timing 
+(hsync-fp!)  ( start end -- )    \ Panel horizontal sync
+(hsync!)   ( start end -- )       \ horizontal sync
+(hblank!)  ( start end -- )      \ horizontal timing 
+(htiming!)  ( hactive htotal -- ) \ horizontal timing 
+lines/frame ( -- n ) \  screen y-resolution
+pixels/line ( -- n ) \ screen x-resolution 
+video-mode  ( -- n )  \ current screen graphics mode 0 -- 5
+video-on                     
+video-off
+bytes/pixel ( -- n) \ value holding the number bytes per pixel 
+bits/pixel   ( -- n) \ value holding the number bits per pixel
+gx1-reset-video  ( -- ) \ disable and reset video
+gx1-fb-comp-disable   ( -- )  \ disable framebuffer compression
+gx1-fb-comp-enable  ( -- )  \ enable framebuffer compression 
+gx1-compression? ( -- flag ) \ framebuffer compression status
+gx1-decomp-enable ( -- ) \ enable gx1 decompression 
+gx1-comp-enable ( -- )    \ enable gx1 compression 
+gx1-decomp-disable ( -- ) \ disable gx1- decompression
+gx1-comp-disable ( -- )   \ disable gx1 compression
+gx1-valid-bit@  ( u -- flg )
+gx1-cursor-position!  ( x y --)  \ set cursor xy cordinates
+gx1-cursor-position@ ( -- x y)   \ get cursor xy cordinates
+gx1-cursor-fg!  ( u -- )    
+gx1-cursor-fg@  ( -- u )   
+gx1-cursor-bg!  ( u -- )  
+gx1-cursor-bg@  ( -- u ) 
+gx1-cursor-color!  ( u pal-reg -- ) 
+gx1-cursor-color@  ( pal-reg -- u) \    
+gx1-cursor-disable  ( -- ) disable hardware cursor 
+gx1-cursor-enable    -- ) \ enable hardware cursor
+cub-offset@  ( -- u )  \ offset of cursor buffer in framebuffer
+gx1-video-disable ( -- )  \ disable gx1 video 
+gx1-video-enable  ( -- )  \ enable gx1 video 
+gx1-wait-vblank                                                                 
+gx1-tgen?                                                                       
+gx1-vblank?                                                                     
+vb-size@                                                                        
+vb-size!                                                                        
+vb-offset@                                                                      
+cb-line-size!                                                                   
+cb-line-size@                                                                   
+cb-line-delta!                                                                  
+cb-line-delta@                                                                  
+cb-offset@                                                                      
+
+fb-lines@                                                                       
+fb-pixels/line  ( --- u ) \ framebuffer pixels  h_active
+fb-line-size@ ( -- u )   \ framebuffer line size in bytes
+fb-line-delta! ( u --)  \ set framebuffer line delta ( pitch)  in bytes
+fb-line-delta@  ( -- u ) \ framebuffer line delta ( pitch)  in bytes 
+fb-offset@  ( -- addr )  \ frame buffer offset  in ram
+fb-bpp-8   ( -- ) \ set framebuffer access words to 8-bit mode 
+fb-bpp-16 ( -- ) \ set framebuffer access words to 16-bit mode. Default  
+fb-fill ( addr len val -- ) \  fill frame buffer
+fb@  ( a -- x)  \  read from frame buffer
+fb! ( x a --) \ write  into frame buffer   
+fbuf  ( -- addr )   \ value holding the address of the start of the frame buffer
+
+\ SUPERio and PNP
+gpio1  
+gpio0 
+pnpgpio!
+pnpgpio@ 
+pnpgpio#
+pnppm! 
+pnppm@
+pnppm#   
+pnpldn! 
+pnp@   
+pnp! 
+ 
+\ CS5530 Southbridge
+init-pic ( -- )  \ initialize the programable interrupt controller  
+activate-video  ( sync_pol -- )
+set-video-clock  ( pll-value -- )
+crt-disable  ( -- ) 
+crt-enable  ( -- )   
+disable-flash  ( -- )  
+enable-flash  ( -- )  
+
+f0-w!                                                                           
+f0-c!                                                                           
+f0!                                                                             
+f0-w@                                                                           
+f0-c@                                                                           
+f0@                                                                             
+f0-index                                                                        
+f1-bar#                                                                         
+
+f2-io!                                                                          
+f2-io@                                                                          
+f2!                                                                             
+f2@                                                                             
+f2-io#                                                                          
+f2-bar#                                                                         
+
+f3!                                                                             
+f3@                                                                             
+f3-bar#                                                                         
+
+f4!                                                                             
+f4@                                                                             
+f4-bar#                                                                         
+
+usb!                                                                            
+usb@                                                                            
+usb-bar# 
+                                                                       
+eth!                                                                            
+eth@                                                                            
+eth-io!                                                                         
+eth-io@                                                                         
+eth-bar#                                                                        
+eth-io#                                                                         
+
+\ PCI
+pcisetbusmaster                                                                 
+pci-read-res                                                                    
+pci-find-dev-on-bus                                                             
+pci!                                                                            
+pci-w!                                                                          
+pci-c!                                                                          
+pci@                                                                            
+pci-w@                                                                          
+pci-c@                                                                          
+pci-config-reg                                                                  
+pci-func                                                                        
+pci-slot                                                                        
+pci-bus                                                                         
+pci-addr                                                                        
+pci-dev                                                                         
+
+\ Northbridge  - GX1
+init-scratchpad  ( u -- ) \ initialize scratchpad size  u = 2048,3072,4096
+set-scratchpad-size  ( u -- ) \ u = 1024|2048|3072|4096kb. 1024 disables cache
+gx1-bbxbase!  ( w 0|1 --) \  gx1 cpu internal L1 cache BLT registers
+gx1-bbxbase@  ( 0|1 -- w) \  gx1 cpu internal L1 cache BLT registers
+map-cache-line ( u -- ) \ map cacheline of set 0 to physical address u
+setup-fill-buffer ( u -- )
+enable-cache  ( -- )  \ enable gx1 cache lines
+disable-cache  ( -- )  \ disable gx1 cache lines
+invalidate-cache  ( -- ) \ invalidate scratchpad ram
+
+gbadd# ( -- u) graphics memory base address
+
+gx1-palette-reg!( u reg -- u )  palette access
+gx1-palette-reg@ ( reg -- u )
+gx1-palette-index! ( index -- ) 
+gx1-palette!  ( u -- )
+gx1-palette@ ( -- u )
+gx1-pmr!  ( -- addr) 
+gx1-pmr@ ( idx -- u)
+pmr-base ( -- addr) \ Power management control register 
+
+gx1-mcr!  ( u idx -- )
+gx1-mcr@ ( idx -- u )
+mcr-base ( -- addr) \ Memory controller register
+
+gx1-dcr-lock-pop  ( x -- ) 
+gx1-dcr-lock-push ( --  x)
+gx1-dcr-lock  ( -- )     
+gx1-dcr-unlock ( -- )   
+gx1-dcr!   ( u idx -- ) \ Display controller registers 
+gx1-dcr@                                                                        
+dcr-base   
+
+gx1-gpr-w! ( w idx -- )  
+gx1-gpr-w@  ( idx -- w) 
+gx1-gpr! ( u idx -- )  
+gx1-gpr@  ( idx -- u) 
+gpr-base   ( -- addr)  \ Graphics Pipeline Control Registers
+                                                                    
+gx1-ibir!   ( u idx -- ) 
+gx1-ibir@   ( idx -- u )
+ibir-base   ( -- addr)        \ Internal Bus Interface unit register
+
+gx-base-c!  ( val idx  -- )   write byte to graphics index register
+gx-base-c@ ( idx -- val )  read byte from graphics index register
+gx-base! ( val idx -- )  write dword graphics index register
+gx-base@ ( idx -- val ) read dword graphics index register
+gx-base# ( -- u) \ value of graphics base address
+(gx-base) ( -- addr ) \ Graphics Control Register from gx1-register
+gx1@ ( reg -- val )  read gx1 register
+gx1! ( val reg -- ) write to gx1 register
+
