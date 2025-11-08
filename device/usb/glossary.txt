@@ -1,0 +1,12 @@
+usb-open  ( -- flag )    initialize usb and probe for devices
+usb-close  ( -- ) close usb
+set-config  ( cfg -- usberr )   \  select configuration for target usb device
+set-interface  ( intf alt -- usberr ) \ select interface for trgaet usb device
+my-dev  \ value: Equals to target
+target  \ value: usb device id  for all request
+: set-target  ( target -- )  \ set the target usb device
+\ usb-storage
+0 value device
+0 value configuration
+set-device  ( -- )  \ set the msd usb dev hard coded to 1
+open  ( -- flag ) \ do a one time initialize with init-msd 
